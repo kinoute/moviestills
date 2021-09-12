@@ -78,7 +78,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 	})
 
 	// look for images linked to a "large" version
-	movieScraper.OnHTML("a[href*=large]", func(e *colly.HTMLElement) {
+	movieScraper.OnHTML("a[href*=large]:not([href*=subs])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
 		e.Request.Visit(movieImageURL)
@@ -86,7 +86,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 
 	// on DVD reviews, there is no clickable large version
 	// download the image as shown on the webpage
-	movieScraper.OnHTML("td p img:not([src*=banner]):not([src*=bitrate]):not([src$=gif]):not([src*='_subs']):not([src*='daggers_line'])", func(e *colly.HTMLElement) {
+	movieScraper.OnHTML("td img:not([src*=banner]):not([src*=bitrate]):not([src$=gif]):not([src*=subs]):not([src*=daggers]):not([src*=menu])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
 
 		// filter low resolutions images to avoid false positive
@@ -95,7 +95,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 
 		log.Println("Found low image", movieImageURL)
 
-		if movieImageHeight >= 400 || movieImageWidth >= 500 {
+		if movieImageHeight >= 275 && movieImageWidth >= 500 {
 			log.Println("Image seems correct in sizes, downloading")
 			e.Request.Visit(movieImageURL)
 		}
