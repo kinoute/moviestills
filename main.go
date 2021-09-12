@@ -8,7 +8,6 @@ import (
 
     arg "github.com/alexflint/go-arg"
     "github.com/gocolly/colly/v2"
-    "github.com/gocolly/colly/v2/debug"
     "github.com/gocolly/colly/v2/extensions"
     "github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
 )
@@ -22,7 +21,8 @@ func main() {
 
     // ask for website to scrap through arguments
     var args struct {
-        Website string `arg:"-w, --website"`
+        Website string        `arg:"required,-w, --website" help: "Website to scrap movie stills on"`
+        Delay   time.Duration `arg:"-d, --delay" help: "Delay in seconds to avoid getting banned" default:"5"`
     }
 
     params := arg.MustParse(&args)
@@ -49,8 +49,7 @@ func main() {
     // Instantiate collector
     c := colly.NewCollector(
         colly.CacheDir("./cache"),
-        (colly.Debugger(&debug.LogDebugger{})))
-
+    )
     // save state of the scrapping on disk
     storage := &sqlite3.Storage{
         Filename: "./progress.db",
@@ -72,7 +71,7 @@ func main() {
     // to avoid getting IP banned
     c.Limit(&colly.LimitRule{
         Parallelism: 2,
-        RandomDelay: 5 * time.Second,
+        RandomDelay: args.Delay * time.Second,
     })
 
     // here we call the website module
