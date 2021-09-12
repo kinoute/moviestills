@@ -10,25 +10,32 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-var url = "http://www.dvdbeaver.com/film/reviews.htm"
+// this webpage stores a list of links to
+// movie list pages by alphabet (#, a, z).
+// It's a good starting point for our task.
+var BeaverURL = "http://www.dvdbeaver.com/film/reviews.htm"
 
 func newBeaverScraper(scraper **colly.Collector) {
-	log.Println("inside beaver scraper")
+	log.Println("Starting DVDBeaver Scraper...")
 
 	// change allowed domain for the main scrapper
+	// since everything is served on the same domain,
+	// only one domain is necessary.
 	(*scraper).AllowedDomains = []string{"www.dvdbeaver.com"}
+
 	// the reviews page might have been changed so
-	// we have to revisit it when restarting scraper
+	// we have to revisit it when restarting the scraper.
+	// it's a single page, it will not cost anything anyway.
 	(*scraper).AllowURLRevisit = true
 
 	// movie list might be updated often with new movies
-	// so we autorize scraper to revisit
+	// so we autorize the scraper to revisit these pages.
 	movieListScraper := (*scraper).Clone()
 	movieListScraper.AllowURLRevisit = true
 
-	// scraper to fetch movie images
-	// this type of page is not updated after being
-	// published therefore we only visit once
+	// scraper to fetch movie images on reviews pages.
+	// These pages are not updated after being
+	// published therefore we only visit them once
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
@@ -58,7 +65,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 
 		log.Println("Found movie link for ", movieName)
 
-		// create folder to save images in case it doesn't exist
+		// create folder to save images in case it doesn't exist yet
 		moviePath := filepath.Join(".", "data", "dvdbeaver", movieName)
 		err := os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
@@ -66,8 +73,8 @@ func newBeaverScraper(scraper **colly.Collector) {
 			return
 		}
 
-		// pass the movie's name and path to the next request context
-		// in order to save the images in correct folder
+		// pass the movie path to the next request context
+		// in order to save the images in the correct folder
 		ctx := colly.NewContext()
 		ctx.Put("movie_path", moviePath)
 
@@ -77,7 +84,8 @@ func newBeaverScraper(scraper **colly.Collector) {
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 	})
 
-	// look for images linked to a "large" version
+	// look for links on images that redirects to a "largest" version.
+	// most likely, these links appear on Blu-Ray reviews.
 	movieScraper.OnHTML("a[href*=large]:not([href*=subs])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
@@ -85,37 +93,43 @@ func newBeaverScraper(scraper **colly.Collector) {
 	})
 
 	// on DVD reviews, there is no clickable large version
-	// download the image as shown on the webpage
-	movieScraper.OnHTML("td img:not([src*=banner]):not([src*=bitrate]):not([src$=gif]):not([src*=subs]):not([src*=daggers]):not([src*=menu])", func(e *colly.HTMLElement) {
-		movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
+	// so we download the images as shown on the webpage and
+	// be sure we avoid some weird images (subtitles, covers etc)
+	movieScraper.OnHTML(
+		"img:not([src*=banner])"+
+			":not([src*=bitrate])"+
+			":not([src$=gif])"+
+			":not([src*=subs])"+
+			":not([src*=daggers])"+
+			":not([src*=posters])"+
+			":not([src*=menu])", func(e *colly.HTMLElement) {
+			movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
 
-		// filter low resolutions images to avoid false positive
-		movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
-		movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
+			// filter low resolutions images to avoid false positives
+			// if the images are too small, we won't be able to use them
+			// anyway so lets skip them.
+			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
+			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
+			if movieImageHeight >= 275 && movieImageWidth >= 500 {
+				log.Println("Image seems correct in sizes, downloading", movieImageURL)
+				e.Request.Visit(movieImageURL)
+			}
+		})
 
-		log.Println("Found low image", movieImageURL)
-
-		if movieImageHeight >= 275 && movieImageWidth >= 500 {
-			log.Println("Image seems correct in sizes, downloading")
-			e.Request.Visit(movieImageURL)
-		}
-	})
-
+	// check what we just visited and if its an image
+	// save it to the movie folder we created earlier
 	movieScraper.OnResponse(func(r *colly.Response) {
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
 			outputDir := r.Ctx.Get("movie_path")
-			r.Save(outputDir + "/" + r.FileName())
+			outputImgPath := outputDir + "/" + r.FileName()
+
+			// don't save again it we already downloaded it
+			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
+				r.Save(outputImgPath)
+			}
 			return
 		}
 	})
 
-	(*scraper).Visit(url)
-
-	// if visited, _ := (*scraper).HasVisited(url); !visited {
-	// 	log.Println("not visited, lets go", url)
-	// 	(*scraper).Visit(url)
-	// } else {
-	// 	log.Println("already visited", url)
-	// }
-
+	(*scraper).Visit(BeaverURL)
 }
