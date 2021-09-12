@@ -14,9 +14,10 @@ import (
 
 func main() {
 
-    // implemented scraper
+    // implemented scrapers as today
     sites := map[string]func(**colly.Collector){
-        "dvdbeaver": newBeaverScraper,
+        "dvdbeaver":   newBeaverScraper,
+        "blusscreens": newBlusScraper,
     }
 
     // ask for website to scrap through arguments
@@ -33,6 +34,9 @@ func main() {
     }
 
     // verify if we have a scrapper for the given website
+    // if we do, site_func will now be a function listed in
+    // the sites map that matches a module for this specifi
+    // website.
     site_func, site_available := sites[strings.ToLower(args.Website)]
     if !site_available {
         log.Println("We don't have a scraper for this website.")
@@ -47,9 +51,10 @@ func main() {
     // for a valid website!
 
     // Instantiate collector
-    c := colly.NewCollector(
+    scraper := colly.NewCollector(
         colly.CacheDir("./cache"),
     )
+
     // save state of the scrapping on disk
     storage := &sqlite3.Storage{
         Filename: "./progress.db",
@@ -57,27 +62,27 @@ func main() {
 
     defer storage.Close()
 
-    err := c.SetStorage(storage)
+    err := scraper.SetStorage(storage)
     if err != nil {
         panic(err)
     }
 
     // use random user agent and referer to
     // avoid getting banned
-    extensions.RandomUserAgent(c)
-    extensions.Referer(c)
+    extensions.RandomUserAgent(scraper)
+    extensions.Referer(scraper)
 
     // limit parallelism and add rand delay
     // to avoid getting IP banned
-    c.Limit(&colly.LimitRule{
+    scraper.Limit(&colly.LimitRule{
         Parallelism: 2,
         RandomDelay: args.Delay * time.Second,
     })
 
-    // here we call the website module
+    // here we call the website module:
     // depending on the website provided
     // in the CLI, it will call a different
     // file/module/function made specifically
     // to scrap this website.
-    site_func(&c)
+    site_func(&scraper)
 }
