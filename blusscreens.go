@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -16,9 +19,20 @@ import (
 // because they don't have cinematographers associated to it.
 var BlusURL = "https://www.bluscreens.net/cinematographers.html"
 
+// data structure to save our result
+// in our JSON file
+type BlusMovie struct {
+	Title string
+	IMDb  string
+	Path  string
+}
+
 func newBlusScraper(scraper **colly.Collector) {
 
 	log.Println("Starting Blus Screens Scraper...")
+
+	// save movie infos as JSON
+	movies := make([]*BlusMovie, 0)
 
 	// change allowed domains for the main scrapper
 	// images are stored on imgur so make sure we allow it
@@ -60,6 +74,7 @@ func newBlusScraper(scraper **colly.Collector) {
 		// pass the movie's name and path to the next request context
 		// in order to save the images in correct folder
 		ctx := colly.NewContext()
+		ctx.Put("movie_name", movieName)
 		ctx.Put("movie_path", moviePath)
 
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
@@ -86,6 +101,34 @@ func newBlusScraper(scraper **colly.Collector) {
 		e.Request.Visit(movieImageURL)
 	})
 
+	// get IMDB id from the IMDB link
+	// it is an unique ID for each movie and it is
+	// better to use it than the movie's title.
+	movieScraper.OnHTML("div.wsite-image-border-none a[href*=imdb]", func(e *colly.HTMLElement) {
+		imdbLink := e.Attr("href")
+
+		log.Println("found imdb link", e.Attr("href"))
+
+		// isolate IMDB id from IMDb url
+		re := regexp.MustCompile(`(tt\d{7,8})`)
+		imdbID := re.FindString(imdbLink)
+
+		// now we have everything to append this movie to our JSON results
+		movie := &BlusMovie{
+			Title: e.Request.Ctx.Get("movie_name"),
+			IMDb:  imdbID,
+			Path:  e.Request.Ctx.Get("movie_path"),
+		}
+
+		movies = append(movies, movie)
+
+		// we save the JSON results after every movie
+		// in case we have to stop the scrapping in
+		// the middle. At least, we will have the
+		// intermediate datas.
+		writeJSON(movies)
+	})
+
 	// check what we just visited and if its an image
 	// save it to the movie folder we created earlier
 	movieScraper.OnResponse(func(r *colly.Response) {
@@ -104,4 +147,16 @@ func newBlusScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(BlusURL)
+
+}
+
+// func to save summary of scrapped movies to json
+func writeJSON(data []*BlusMovie) {
+	file, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		log.Println("Unable to create Blus Screens json file")
+		return
+	}
+
+	_ = ioutil.WriteFile("blusscreens.json", file, 0644)
 }

@@ -4,3 +4,4 @@ data/dvdbeaver/*
 !data/dvdbeaver/.gitkeep
 data/blusscreens/*
 !data/blusscreens/.gitkeep
+*.json
