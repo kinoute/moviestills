@@ -2,6 +2,7 @@ package main
 
 import (
     "log"
+    website "moviestills/websites"
     "os"
     "strings"
     "time"
@@ -16,14 +17,14 @@ func main() {
 
     // implemented scrapers as today
     sites := map[string]func(**colly.Collector){
-        "dvdbeaver":   newBeaverScraper,
-        "blusscreens": newBlusScraper,
+        "dvdbeaver":   website.DVDBeaverScraper,
+        "blusscreens": website.BlusScraper,
     }
 
     // ask for website to scrap through arguments
     var args struct {
-        Website string        `arg:"required,-w, --website" help: "Website to scrap movie stills on"`
-        Delay   time.Duration `arg:"-d, --delay" help: "Delay in seconds to avoid getting banned" default:"5"`
+        Website string        `arg:"required,-w, --website" help:"Website to scrap movie stills on"`
+        Delay   time.Duration `arg:"-d, --delay" help:"Delay in seconds to avoid getting banned" default:"5s"`
     }
 
     params := arg.MustParse(&args)
@@ -41,8 +42,8 @@ func main() {
     if !site_available {
         log.Println("We don't have a scraper for this website.")
         log.Println("List of available scrapers:")
-        for site, _ := range sites {
-            log.Println("– ", site)
+        for site := range sites {
+            log.Println("–", site)
         }
         os.Exit(1)
     }

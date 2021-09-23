@@ -1,4 +1,4 @@
-package main
+package websites
 
 import (
 	"log"
@@ -15,7 +15,7 @@ import (
 // It's a good starting point for our task.
 var BeaverURL = "http://www.dvdbeaver.com/film/reviews.htm"
 
-func newBeaverScraper(scraper **colly.Collector) {
+func DVDBeaverScraper(scraper **colly.Collector) {
 	log.Println("Starting DVDBeaver Scraper...")
 
 	// change allowed domain for the main scrapper

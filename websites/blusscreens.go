@@ -1,4 +1,4 @@
-package main
+package websites
 
 import (
 	"encoding/json"
@@ -12,9 +12,10 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// we use the cinematographers page because the movie's title
+// We use the cinematographers page because the movie's title
 // can be easily scrapped/parsed there instead of the screen
 // captures page (#, A, Z) where links are images.
+//
 // The downside is, some movies (animation?) might be missing
 // because they don't have cinematographers associated to it.
 var BlusURL = "https://www.bluscreens.net/cinematographers.html"
@@ -27,7 +28,7 @@ type BlusMovie struct {
 	Path  string
 }
 
-func newBlusScraper(scraper **colly.Collector) {
+func BlusScraper(scraper **colly.Collector) {
 
 	log.Println("Starting Blus Screens Scraper...")
 
@@ -87,7 +88,7 @@ func newBlusScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=imgur]", func(e *colly.HTMLElement) {
 
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("inside movie page for", e.Request.Ctx.Get("movie_path"))
+		log.Println("inside movie page for", e.Request.Ctx.Get("movie_name"))
 
 		// create link to real image if its a link to imgur
 		// website and not directly to the image
