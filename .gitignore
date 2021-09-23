@@ -1,7 +1,6 @@
-cache
+cache/*
+!cache/.gitkeep
+data/*
+!data/.gitkeep
 *.db
-data/dvdbeaver/*
-!data/dvdbeaver/.gitkeep
-data/blusscreens/*
-!data/blusscreens/.gitkeep
 *.json
