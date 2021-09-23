@@ -49,7 +49,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 	})
 
 	// find links to movies list by alphabet
-	(*scraper).OnHTML("a[href*=listing]", func(e *colly.HTMLElement) {
+	(*scraper).OnHTML("a[href*='listing' i]", func(e *colly.HTMLElement) {
 		movieListURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie list page link", movieListURL)
 		movieListScraper.Visit(movieListURL)
@@ -60,7 +60,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 		log.Println("visiting movie list page", r.URL.String())
 	})
 
-	movieListScraper.OnHTML("a[href*=film][href*=review]", func(e *colly.HTMLElement) {
+	movieListScraper.OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
 		movieName := strings.TrimSpace(e.Text)
 
 		log.Println("Found movie link for ", movieName)
@@ -86,7 +86,7 @@ func newBeaverScraper(scraper **colly.Collector) {
 
 	// look for links on images that redirects to a "largest" version.
 	// most likely, these links appear on Blu-Ray reviews.
-	movieScraper.OnHTML("a[href*=large]:not([href*=subs])", func(e *colly.HTMLElement) {
+	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
 		e.Request.Visit(movieImageURL)
@@ -96,13 +96,13 @@ func newBeaverScraper(scraper **colly.Collector) {
 	// so we download the images as shown on the webpage and
 	// be sure we avoid some weird images (subtitles, covers etc)
 	movieScraper.OnHTML(
-		"img:not([src*=banner])"+
-			":not([src*=bitrate])"+
-			":not([src$=gif])"+
-			":not([src*=subs])"+
-			":not([src*=daggers])"+
-			":not([src*=posters])"+
-			":not([src*=menu])", func(e *colly.HTMLElement) {
+		"img:not([src*='banner' i])"+
+			":not([src*='bitrate' i])"+
+			":not([src$='gif' i])"+
+			":not([src*='subs' i])"+
+			":not([src*='daggers' i])"+
+			":not([src*='posters' i])"+
+			":not([src*='menu' i])", func(e *colly.HTMLElement) {
 			movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
 
 			// filter low resolutions images to avoid false positives
