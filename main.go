@@ -2,7 +2,7 @@ package main
 
 import (
     "log"
-    website "moviestills/websites"
+    "moviestills/websites"
     "os"
     "strings"
     "time"
@@ -17,8 +17,8 @@ func main() {
 
     // implemented scrapers as today
     sites := map[string]func(**colly.Collector){
-        "dvdbeaver":   website.DVDBeaverScraper,
-        "blusscreens": website.BlusScraper,
+        "dvdbeaver":   websites.DVDBeaverScraper,
+        "blusscreens": websites.BlusScraper,
     }
 
     // ask for website to scrap through arguments
