@@ -18,6 +18,7 @@ func main() {
     // implemented scrapers as today
     sites := map[string]func(**colly.Collector){
         "dvdbeaver":   websites.DVDBeaverScraper,
+        "blubeaver":   websites.BluBeaverScraper,
         "blusscreens": websites.BlusScraper,
     }
 
