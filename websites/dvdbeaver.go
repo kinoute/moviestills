@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/utils"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -14,7 +14,7 @@ import (
 // this webpage stores a list of links to
 // movie list pages by alphabet (#, a, z).
 // It's a good starting point for our task.
-var BeaverURL = "http://www.dvdbeaver.com/film/reviews.htm"
+const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
 func DVDBeaverScraper(scraper **colly.Collector) {
 	log.Println("Starting DVDBeaver Scraper...")
@@ -61,18 +61,22 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("visiting movie list page", r.URL.String())
 	})
 
+	// looks for movie reviews link and create folder for every
+	// movie we find to prepare the download of the snapshots.
 	movieListScraper.OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
-		movieName := strings.TrimSpace(e.Text)
 
-		// remove weird multiple spaces
-		space := regexp.MustCompile(`\s+`)
-		movieName = space.ReplaceAllString(movieName, " ")
+		// take care of weird characters
+		movieName, err := utils.Normalize(e.Text)
+		if err != nil || movieName == "" {
+			log.Println("Can't normalize Movie name for", movieName)
+			return
+		}
 
 		log.Println("Found movie link for ", movieName)
 
 		// create folder to save images in case it doesn't exist yet
 		moviePath := filepath.Join(".", "data", "dvdbeaver", movieName)
-		err := os.MkdirAll(moviePath, os.ModePerm)
+		err = os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
 			log.Println("Error creating folder for", movieName)
 			return

@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/utils"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -12,7 +12,7 @@ import (
 
 // this webpage stores a list of links to
 // movie reviews of Blu-rays
-var BluBeaverURL = "http://www.dvdbeaver.com/blu-ray.htm"
+const BluBeaverURL string = "http://www.dvdbeaver.com/blu-ray.htm"
 
 func BluBeaverScraper(scraper **colly.Collector) {
 	log.Println("Starting BluBeaver Scraper...")
@@ -47,15 +47,15 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie page link", movieURL)
 
-		movieName := strings.TrimSpace(e.Text)
-
-		// remove weird multiple spaces
-		space := regexp.MustCompile(`\s+`)
-		movieName = space.ReplaceAllString(movieName, " ")
+		movieName, err := utils.Normalize(e.Text)
+		if err != nil || movieName == "" {
+			log.Println("Can't normalize Movie name for", movieName)
+			return
+		}
 
 		// create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blubeaver", movieName)
-		err := os.MkdirAll(moviePath, os.ModePerm)
+		err = os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
 			log.Println("Error creating folder for", movieName)
 			return
