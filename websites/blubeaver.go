@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -47,6 +48,10 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		log.Println("Found movie page link", movieURL)
 
 		movieName := strings.TrimSpace(e.Text)
+
+		// remove weird multiple spaces
+		space := regexp.MustCompile(`\s+`)
+		movieName = space.ReplaceAllString(movieName, " ")
 
 		// create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blubeaver", movieName)

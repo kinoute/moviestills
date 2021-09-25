@@ -62,6 +62,10 @@ func BlusScraper(scraper **colly.Collector) {
 
 		movieName := strings.TrimSpace(e.Text)
 
+		// remove weird multiple spaces
+		space := regexp.MustCompile(`\s+`)
+		movieName = space.ReplaceAllString(movieName, " ")
+
 		log.Println("Found movie link for", movieName)
 
 		// create folder to save images in case it doesn't exist

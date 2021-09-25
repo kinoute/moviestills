@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -62,6 +63,10 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 
 	movieListScraper.OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
 		movieName := strings.TrimSpace(e.Text)
+
+		// remove weird multiple spaces
+		space := regexp.MustCompile(`\s+`)
+		movieName = space.ReplaceAllString(movieName, " ")
 
 		log.Println("Found movie link for ", movieName)
 
