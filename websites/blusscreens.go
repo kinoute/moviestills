@@ -56,7 +56,7 @@ func BlusScraper(scraper **colly.Collector) {
 		"i.pixxxels.cc",
 	}
 
-	// The cinematographers page might have been changed so
+	// The cinematographers page might have been updated so
 	// we have to revisit it when restarting scraper.
 	(*scraper).AllowURLRevisit = true
 
