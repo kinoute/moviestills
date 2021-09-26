@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"moviestills/utils"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -18,7 +20,13 @@ import (
 //
 // The downside is, some movies (animation?) might be missing
 // because they don't have cinematographers associated to it.
-var BlusURL = "https://www.bluscreens.net/cinematographers.html"
+const BlusURL string = "https://www.bluscreens.net/cinematographers.html"
+
+// don't download images that are less than 20kb.
+// it is helpful for this website since all images are hosted on
+// imgur and some might have been deleted. When an image is deleted
+// on imgur, it returns a small image with some text on it. We don't want that
+const MinimumSize int = 1024 * 20
 
 // data structure to save our result
 // in our JSON file
@@ -36,8 +44,16 @@ func BlusScraper(scraper **colly.Collector) {
 	movies := make([]*BlusMovie, 0)
 
 	// change allowed domains for the main scrapper
-	// images are stored on imgur so make sure we allow it
-	(*scraper).AllowedDomains = []string{"www.bluscreens.net", "imgur.com", "i.imgur.com"}
+	// images are stored either on imgur or postimage
+	// so make sure we allow all these domains
+	(*scraper).AllowedDomains = []string{
+		"www.bluscreens.net",
+		"imgur.com",
+		"i.imgur.com",
+		"postimage.org",
+		"postimg.cc",
+		"i.postimg.cc",
+	}
 
 	// the cinematographers page might have been changed so
 	// we have to revisit it when restarting scraper
@@ -58,19 +74,19 @@ func BlusScraper(scraper **colly.Collector) {
 	// create a dedicated folder if it doesn't exist
 	// to store images. Then visit movie page where
 	// images are listed/displayed
-	(*scraper).OnHTML("h2.wsite-content-title a[href*=html]", func(e *colly.HTMLElement) {
+	(*scraper).OnHTML("h2.wsite-content-title a[href*=html][href*=oss]", func(e *colly.HTMLElement) {
 
-		movieName := strings.TrimSpace(e.Text)
-
-		// remove weird multiple spaces
-		space := regexp.MustCompile(`\s+`)
-		movieName = space.ReplaceAllString(movieName, " ")
+		movieName, err := utils.Normalize(e.Text)
+		if err != nil || movieName == "" {
+			log.Println("Can't normalize Movie name for", movieName)
+			return
+		}
 
 		log.Println("Found movie link for", movieName)
 
 		// create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blusscreens", movieName)
-		err := os.MkdirAll(moviePath, os.ModePerm)
+		err = os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
 			log.Println("Error creating folder for", movieName)
 			return
@@ -103,6 +119,26 @@ func BlusScraper(scraper **colly.Collector) {
 		}
 
 		log.Println("Found linked image", movieImageURL)
+		e.Request.Visit(movieImageURL)
+	})
+
+	// some old pages of blusscreens have a different layout.
+	// we need a special funtion to handle this
+	// eg: https://www.bluscreens.net/oss-117-rio-ne-reacutepond-plus.html
+	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=postimage]", func(e *colly.HTMLElement) {
+		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Println("found postimage link", postImgURL)
+
+		e.Request.Visit(postImgURL)
+	})
+
+	// get full images from postimage.cc host
+	// we need do get the "download" button link as
+	// the image shown on the page is in "low" resolution
+	movieScraper.OnHTML("div#content a#download[href*=postimg]", func(e *colly.HTMLElement) {
+		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Println("found postimg image", movieImageURL)
+
 		e.Request.Visit(movieImageURL)
 	})
 
@@ -140,6 +176,15 @@ func BlusScraper(scraper **colly.Collector) {
 
 		// if we're dealing with an image, save it in the correct folder
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+
+			// ignore weird small-sized images
+			imageSize, _ := strconv.Atoi(r.Headers.Get("Content-Length"))
+
+			if imageSize < MinimumSize {
+				log.Println("Small-sized image, not downloading", r.FileName())
+				return
+			}
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
@@ -147,6 +192,7 @@ func BlusScraper(scraper **colly.Collector) {
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				r.Save(outputImgPath)
 			}
+
 			return
 		}
 	})
