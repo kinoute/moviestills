@@ -74,7 +74,7 @@ func BlusScraper(scraper **colly.Collector) {
 	// create a dedicated folder if it doesn't exist
 	// to store images. Then visit movie page where
 	// images are listed/displayed
-	(*scraper).OnHTML("h2.wsite-content-title a[href*=html][href*=oss]", func(e *colly.HTMLElement) {
+	(*scraper).OnHTML("h2.wsite-content-title a[href*=html]", func(e *colly.HTMLElement) {
 
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
@@ -133,7 +133,7 @@ func BlusScraper(scraper **colly.Collector) {
 	})
 
 	// get full images from postimage.cc host
-	// we need do get the "download" button link as
+	// we need to get the "download" button link as
 	// the image shown on the page is in "low" resolution
 	movieScraper.OnHTML("div#content a#download[href*=postimg]", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
