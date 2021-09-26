@@ -46,7 +46,7 @@ func main() {
     }
 
     // Verify if we have a scrapper for the given website.
-    // If we do, "site_func" will now contain a function function listed in
+    // If we do, "site_func" will now contain a function listed in
     // the sites map that matches a module for this specific
     // website stored in the "websites" folder.
     site_func, site_available := sites[strings.ToLower(args.Website)]
