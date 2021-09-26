@@ -22,14 +22,13 @@ import (
 // because they don't have cinematographers associated to it.
 const BlusURL string = "https://www.bluscreens.net/cinematographers.html"
 
-// don't download images that are less than 20kb.
-// it is helpful for this website since all images are hosted on
-// imgur and some might have been deleted. When an image is deleted
-// on imgur, it returns a small image with some text on it. We don't want that
+// Don't download images that are less than 20kb.
+// It is helpful for this website since most of the images are hosted
+// on imgur and some might have been deleted. When an image is deleted
+// on imgur, it returns a small image with some text on it. We don't want that.
 const MinimumSize int = 1024 * 20
 
-// data structure to save our result
-// in our JSON file
+// Data structure to save our result in our JSON file
 type BlusMovie struct {
 	Title string
 	IMDb  string
@@ -40,12 +39,12 @@ func BlusScraper(scraper **colly.Collector) {
 
 	log.Println("Starting Blus Screens Scraper...")
 
-	// save movie infos as JSON
+	// Save movie infos as JSON
 	movies := make([]*BlusMovie, 0)
 
-	// change allowed domains for the main scrapper
-	// images are stored either on imgur or postimage
-	// so make sure we allow all these domains
+	// Change allowed domains for the main scrapper.
+	// Images are stored either on imgur or postimage
+	// so make sure we allow all these domains.
 	(*scraper).AllowedDomains = []string{
 		"www.bluscreens.net",
 		"imgur.com",
@@ -53,15 +52,16 @@ func BlusScraper(scraper **colly.Collector) {
 		"postimage.org",
 		"postimg.cc",
 		"i.postimg.cc",
+		"pixxxels.cc",
+		"i.pixxxels.cc",
 	}
 
-	// the cinematographers page might have been changed so
-	// we have to revisit it when restarting scraper
+	// The cinematographers page might have been changed so
+	// we have to revisit it when restarting scraper.
 	(*scraper).AllowURLRevisit = true
 
-	// scraper to fetch movie images
-	// movie page is not updated after being
-	// published therefore we only visit once
+	// Scraper to fetch movie images.
+	// Movie pages are not updated after being published therefore we only visit once.
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
@@ -70,10 +70,11 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("visiting movie list page", r.URL.String())
 	})
 
-	// isolate every movie listed, keep its title and
+	// Isolate every movie listed, keep its title and
 	// create a dedicated folder if it doesn't exist
-	// to store images. Then visit movie page where
-	// images are listed/displayed
+	// to store images.
+	//
+	// Then visit movie page where images are listed/displayed.
 	(*scraper).OnHTML("h2.wsite-content-title a[href*=html]", func(e *colly.HTMLElement) {
 
 		movieName, err := utils.Normalize(e.Text)
@@ -84,7 +85,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 		log.Println("Found movie link for", movieName)
 
-		// create folder to save images in case it doesn't exist
+		// Create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blusscreens", movieName)
 		err = os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
@@ -92,8 +93,8 @@ func BlusScraper(scraper **colly.Collector) {
 			return
 		}
 
-		// pass the movie's name and path to the next request context
-		// in order to save the images in correct folder
+		// Pass the movie's name and path to the next request context
+		// in order to save the images in correct folder.
 		ctx := colly.NewContext()
 		ctx.Put("movie_name", movieName)
 		ctx.Put("movie_path", moviePath)
@@ -104,26 +105,28 @@ func BlusScraper(scraper **colly.Collector) {
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 	})
 
-	// go through each link to imgur found on the movie page
-	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=imgur]", func(e *colly.HTMLElement) {
+	// Go through each link to imgur found on the movie page
+	movieScraper.OnHTML(
+		"div.galleryInnerImageHolder a[href*=imgur], "+
+			"td.wsite-multicol-col div a[href*=imgur]", func(e *colly.HTMLElement) {
 
-		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("inside movie page for", e.Request.Ctx.Get("movie_name"))
+			movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
+			log.Println("inside movie page for", e.Request.Ctx.Get("movie_name"))
 
-		// create link to real image if its a link to imgur
-		// website and not directly to the image
-		// eg. https://imgur.com/ABC to https://i.imgur.com/ABC.png
-		if strings.Index(movieImageURL, "i.imgur.com") < 0 {
-			movieImageURL += ".png"
-			movieImageURL = strings.Replace(movieImageURL, "https://imgur.com", "https://i.imgur.com", 1)
-		}
+			// Create link to the real image if its a link to imgur's
+			// website and not directly to the image.
+			// eg. https://imgur.com/ABC to https://i.imgur.com/ABC.png
+			if strings.Index(movieImageURL, "i.imgur.com") < 0 {
+				movieImageURL += ".png"
+				movieImageURL = strings.Replace(movieImageURL, "https://imgur.com", "https://i.imgur.com", 1)
+			}
 
-		log.Println("Found linked image", movieImageURL)
-		e.Request.Visit(movieImageURL)
-	})
+			log.Println("Found linked image", movieImageURL)
+			e.Request.Visit(movieImageURL)
+		})
 
-	// some old pages of blusscreens have a different layout.
-	// we need a special funtion to handle this
+	// Some old pages of blusscreens have a different layout.
+	// We need a special funtion to handle this.
 	// eg: https://www.bluscreens.net/oss-117-rio-ne-reacutepond-plus.html
 	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=postimage]", func(e *colly.HTMLElement) {
 		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))
@@ -132,29 +135,44 @@ func BlusScraper(scraper **colly.Collector) {
 		e.Request.Visit(postImgURL)
 	})
 
-	// get full images from postimage.cc host
-	// we need to get the "download" button link as
-	// the image shown on the page is in "low" resolution
-	movieScraper.OnHTML("div#content a#download[href*=postimg]", func(e *colly.HTMLElement) {
-		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("found postimg image", movieImageURL)
+	// Another kind of weird layout mixing table and div.
+	// eg: https://www.bluscreens.net/pain--gain.html
+	movieScraper.OnHTML("td.wsite-multicol-col div a[href*=postim]", func(e *colly.HTMLElement) {
+		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Println("found postimage.org link", postImgURL)
 
-		e.Request.Visit(movieImageURL)
+		// Some links redirect to "postimg.org" and later "pixxxels.cc".
+		// "postimg.org" is not available anymore, we might need to rewrite the URLs
+		postImgURL = strings.Replace(postImgURL, "postimg.org", "postimage.org", 1)
+
+		e.Request.Visit(postImgURL)
 	})
 
-	// get IMDB id from the IMDB link
-	// it is an unique ID for each movie and it is
+	// Get full images from postimage.cc host.
+	// We need to get the "download" button link as
+	// the image shown on the page is in "low" resolution
+	movieScraper.OnHTML(
+		"div#content a#download[href*=postimg], "+
+			"div#content a#download[href*=pixxxels]", func(e *colly.HTMLElement) {
+			movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
+			log.Println("found postimg image", movieImageURL)
+
+			e.Request.Visit(movieImageURL)
+		})
+
+	// Get IMDB id from the IMDB link.
+	// It is an unique ID for each movie and it is
 	// better to use it than the movie's title.
 	movieScraper.OnHTML("div.wsite-image-border-none a[href*=imdb]", func(e *colly.HTMLElement) {
 		imdbLink := e.Attr("href")
 
 		log.Println("found imdb link", e.Attr("href"))
 
-		// isolate IMDB id from IMDb url
+		// Isolate IMDB id from IMDb url
 		re := regexp.MustCompile(`(tt\d{7,8})`)
 		imdbID := re.FindString(imdbLink)
 
-		// now we have everything to append this movie to our JSON results
+		// Now we have everything to append this movie to our JSON results
 		movie := &BlusMovie{
 			Title: e.Request.Ctx.Get("movie_name"),
 			IMDb:  imdbID,
@@ -163,21 +181,21 @@ func BlusScraper(scraper **colly.Collector) {
 
 		movies = append(movies, movie)
 
-		// we save the JSON results after every movie
+		// We save the JSON results after every movie
 		// in case we have to stop the scrapping in
 		// the middle. At least, we will have the
 		// intermediate datas.
 		writeJSON(movies)
 	})
 
-	// check what we just visited and if its an image
-	// save it to the movie folder we created earlier
+	// Check what we just visited and if its an image
+	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 
-		// if we're dealing with an image, save it in the correct folder
+		// If we're dealing with an image, save it in the correct folder
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
 
-			// ignore weird small-sized images
+			// Ignore weird small-sized images
 			imageSize, _ := strconv.Atoi(r.Headers.Get("Content-Length"))
 
 			if imageSize < MinimumSize {
@@ -188,7 +206,7 @@ func BlusScraper(scraper **colly.Collector) {
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
-			// save only if we don't already downloaded it
+			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				r.Save(outputImgPath)
 			}
@@ -201,7 +219,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 }
 
-// func to save summary of scrapped movies to json
+// Save summary of scrapped movies to a JSON file
 func writeJSON(data []*BlusMovie) {
 	file, err := json.MarshalIndent(data, "", " ")
 	if err != nil {
