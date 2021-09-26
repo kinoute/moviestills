@@ -20,7 +20,11 @@ func BluBeaverScraper(scraper **colly.Collector) {
 	// Change allowed domain for the main scraper.
 	// Since everything is served on the same domain,
 	// only one domain is really necessary.
-	(*scraper).AllowedDomains = []string{"www.blubeaver.ca", "www.dvdbeaver.com", "dvdbeaver.com"}
+	(*scraper).AllowedDomains = []string{
+		"www.blubeaver.ca",
+		"www.dvdbeaver.com",
+		"dvdbeaver.com",
+	}
 
 	// The index page might have been updated since last visit so
 	// we have to revisit it when restarting the scraper.
@@ -51,7 +55,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie page link", movieURL)
 
-		// Remove weird accents and multiple spaces
+		// Remove weird accents and spaces from the movie's title
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
 			log.Println("Can't normalize Movie name for", e.Text)
@@ -80,6 +84,9 @@ func BluBeaverScraper(scraper **colly.Collector) {
 	// Look for links on images that redirects to a "largest" version.
 	// These links appear on Blu-Ray reviews almost exclusively and
 	// provide images with native resolution (1080p).
+	//
+	// We try to avoid images with "subs" in the filename as they are
+	// most likely images with subtitles on top. We don't want that.
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)

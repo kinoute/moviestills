@@ -142,7 +142,7 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("found postimage.org link", postImgURL)
 
 		// Some links redirect to "postimg.org" and later "pixxxels.cc".
-		// "postimg.org" is not available anymore, we might need to rewrite the URLs
+		// "postimg.org" is not available anymore, we might need to rewrite the URLs.
 		postImgURL = strings.Replace(postImgURL, "postimg.org", "postimage.org", 1)
 
 		e.Request.Visit(postImgURL)
@@ -150,7 +150,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 	// Get full images from postimage.cc host.
 	// We need to get the "download" button link as
-	// the image shown on the page is in "low" resolution
+	// the image shown on the page is in a "lower" resolution.
 	movieScraper.OnHTML(
 		"div#content a#download[href*=postimg], "+
 			"div#content a#download[href*=pixxxels]", func(e *colly.HTMLElement) {
@@ -183,7 +183,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 		// We save the JSON results after every movie
 		// in case we have to stop the scrapping in
-		// the middle. At least, we will have the
+		// the middle. At least, we will have some
 		// intermediate datas.
 		writeJSON(movies)
 	})

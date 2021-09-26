@@ -71,15 +71,15 @@ func main() {
     extensions.RandomUserAgent(scraper)
     extensions.Referer(scraper)
 
-    // Limit parallelism and add rand delay to avoid getting IP banned
+    // Limit parallelism and add random delay to avoid getting IP banned
     scraper.Limit(&colly.LimitRule{
         Parallelism: 2,
         RandomDelay: args.Delay * time.Second,
     })
 
     // Here we call the website module depending on the website provided
-    // in the CLI.
-    // We will call a different file/module/func made specifically
-    // to scrap this website.
+    // in the CLI by the user.
+    // This will call a file/module/func made specifically to scrap this website.
+    // All available scrapers are stored in the "websites" folder.
     site_func(&scraper)
 }

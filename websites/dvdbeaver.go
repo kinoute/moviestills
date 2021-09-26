@@ -11,7 +11,7 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// This webpage stores a list of links to movie list pages by alphabet (#, a, z).
+// This webpage stores a list of links to movie list pages sorted by alphabet (#, a, z).
 // It's a good starting point for our task.
 const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
@@ -61,13 +61,13 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("visiting movie list page", r.URL.String())
 	})
 
-	// Looks for movie reviews link and create folder for every
+	// Look for movie reviews links and create folder for every
 	// movie we find to prepare the download of the snapshots.
 	// We use the CSS4 case-insensitive feature "i" to make sure
 	// our filter will find everything, no matter the case.
 	movieListScraper.OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
 
-		// Take care of weird characters in the title
+		// Take care of weird characters in the movie's title
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
 			log.Println("Can't normalize Movie name for", e.Text)
@@ -103,9 +103,9 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		e.Request.Visit(movieImageURL)
 	})
 
-	// On DVD reviews, there is no clickable large version.
+	// On DVD reviews, there is almost never clickable large version.
 	// Therefore we download the images as shown on the webpage and
-	// be sure we avoid some weird images (subtitles, DVD covers etc).
+	// be sure we avoid some weird ones (subtitles, DVD covers etc).
 	movieScraper.OnHTML(
 		"img:not([src*='banner' i])"+
 			":not([src*='bitrate' i])"+
