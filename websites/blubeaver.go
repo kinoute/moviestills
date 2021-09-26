@@ -49,7 +49,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", movieName)
+			log.Println("Can't normalize Movie name for", e.Text)
 			return
 		}
 

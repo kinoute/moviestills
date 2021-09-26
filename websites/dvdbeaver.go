@@ -68,7 +68,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		// take care of weird characters
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", movieName)
+			log.Println("Can't normalize Movie name for", e.Text)
 			return
 		}
 
