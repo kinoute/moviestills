@@ -36,6 +36,7 @@ func main() {
         "blubeaver":        websites.BluBeaverScraper,
         "blusscreens":      websites.BlusScraper,
         "movie-screencaps": websites.ScreenCapsScraper,
+        "evanerichards":    websites.EvanERichardsScraper,
     }
 
     var args args
