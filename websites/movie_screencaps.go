@@ -55,6 +55,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	// Then visit movie page where images are listed/displayed.
 	(*scraper).OnHTML("div.tagindex ul.links li a[href*=movie]", func(e *colly.HTMLElement) {
 
+		// Take care of weird accents and spaces
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
 			log.Println("Can't normalize Movie name for", e.Text)
@@ -113,13 +114,10 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	// second or so during the movie, if we download everything, we will have
 	// many similar snapshots and it's going to take forever.
 	//
-	// Therefore, we added :nth-of-type(40n) to the CSS selector to only
-	// download 1 shot out of 40. Remove it if you want to download everything.
-	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(40n)", func(e *colly.HTMLElement) {
-
+	// Therefore, we added :nth-of-type(30n) to the CSS selector to only
+	// download 1 shot out of 30. Remove it if you want to download everything.
+	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(30n)", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("inside movie page for", e.Request.Ctx.Get("movie_name"))
-
 		log.Println("Found linked image", movieImageURL)
 		e.Request.Visit(movieImageURL)
 	})
@@ -134,7 +132,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 			outputDir := r.Ctx.Get("movie_path")
 
 			// We're getting weird filenames from Wordpress.
-			// We might need to remove some suffix.
+			// We might need to remove some suffixes.
 			fileName := strings.TrimSuffix(r.FileName(), "_strip_all")
 			outputImgPath := outputDir + "/" + fileName
 
