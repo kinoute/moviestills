@@ -53,7 +53,9 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	(*scraper).OnHTML("a[href*='listing' i]", func(e *colly.HTMLElement) {
 		movieListURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie list page link", movieListURL)
-		movieListScraper.Visit(movieListURL)
+		if err := movieListScraper.Visit(movieListURL); err != nil {
+			log.Println("Can't visit movie list page", err)
+		}
 		movieListScraper.Wait()
 	})
 
@@ -93,7 +95,9 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("visiting movie page", movieURL)
 
-		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
+			log.Println("Can't visit movie page", err)
+		}
 	})
 
 	// Look for links on images that redirects to a "largest" version.
@@ -101,7 +105,9 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
-		e.Request.Visit(movieImageURL)
+		if err := e.Request.Visit(movieImageURL); err != nil {
+			log.Println("Can't request linked image", err)
+		}
 	})
 
 	// On DVD reviews, there is almost never clickable large version.
@@ -124,28 +130,34 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 			if movieImageHeight >= 275 && movieImageWidth >= 500 {
 				log.Println("Image seems correct in sizes, downloading", movieImageURL)
-				e.Request.Visit(movieImageURL)
+				if err := e.Request.Visit(movieImageURL); err != nil {
+					log.Println("Can't request linked image", err)
+				}
 			}
 		})
 
 	// Check if what we just visited is an image and
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
-		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
 			// Don't save again it we already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				r.Save(outputImgPath)
+				if err = r.Save(outputImgPath); err != nil {
+					log.Println("Can't save image", err)
+				}
 			}
 
 			return
 		}
 	})
 
-	(*scraper).Visit(BeaverURL)
+	if err := (*scraper).Visit(BeaverURL); err != nil {
+		log.Println("Can't visit index page", err)
+	}
 
 	// In case we enabled asynchronous jobs
 	(*scraper).Wait()

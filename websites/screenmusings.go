@@ -60,8 +60,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 
 		// Create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "screenmusings", movieName)
-		err = os.MkdirAll(moviePath, os.ModePerm)
-		if err != nil {
+		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
 			log.Println("Error creating folder for", movieName)
 			return
 		}
@@ -76,7 +75,9 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("visiting movie page", movieURL)
 
-		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
+			log.Println("Can't visit movie page", err)
+		}
 
 		// In case we enabled asynchronous jobs
 		movieScraper.Wait()
@@ -87,8 +88,10 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 	// single page. Therefore, we don't have to deal with pagination.
 	movieScraper.OnHTML("ul#gallery-nav-top li:nth-last-child(2) a[href*=most]", func(e *colly.HTMLElement) {
 		mostViewedImages := e.Attr("href")
-		log.Println("get most view stills link for", e.Request.Ctx.Get("movie_name"))
-		e.Request.Visit(mostViewedImages)
+		log.Println("get most viewed stills link for", e.Request.Ctx.Get("movie_name"))
+		if err := e.Request.Visit(mostViewedImages); err != nil {
+			log.Println("Can't request most viewed stills page", err)
+		}
 	})
 
 	// We iterate through every thumbnail on the "most viewed stills" page.
@@ -102,7 +105,9 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 		movieImageURL = strings.Replace(movieImageURL, "thumbnails", "images", 1)
 
 		log.Println("Found linked image", movieImageURL)
-		e.Request.Visit(movieImageURL)
+		if err := e.Request.Visit(movieImageURL); err != nil {
+			log.Println("Can't request linked image", err)
+		}
 	})
 
 	// Check what we just visited and if its an image
@@ -110,21 +115,26 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 	movieScraper.OnResponse(func(r *colly.Response) {
 
 		// If we're dealing with an image, save it in the correct folder
-		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				r.Save(outputImgPath)
+				err = r.Save(outputImgPath)
+				if err != nil {
+					log.Println("Can't save image", err)
+				}
 			}
 
 			return
 		}
 	})
 
-	(*scraper).Visit(ScreenMusingsURL)
+	if err := (*scraper).Visit(ScreenMusingsURL); err != nil {
+		log.Println("Can't visit index page", err)
+	}
 
 	// In case we enabled asynchronous jobs
 	(*scraper).Wait()

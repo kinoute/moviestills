@@ -92,10 +92,12 @@ func main() {
     extensions.Referer(scraper)
 
     // Limit parallelism and add random delay to avoid getting IP banned
-    scraper.Limit(&colly.LimitRule{
+    if err := scraper.Limit(&colly.LimitRule{
         Parallelism: args.Parallel,
         RandomDelay: args.Delay * time.Second,
-    })
+    }); err != nil {
+        log.Println("Can't change scraper limit options", err)
+    }
 
     // Here we call the website module depending on the website provided
     // in the CLI by the user.

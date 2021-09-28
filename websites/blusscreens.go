@@ -87,8 +87,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 		// Create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blusscreens", movieName)
-		err = os.MkdirAll(moviePath, os.ModePerm)
-		if err != nil {
+		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
 			log.Println("Error creating folder for", movieName)
 			return
 		}
@@ -102,7 +101,9 @@ func BlusScraper(scraper **colly.Collector) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("visiting movie page", movieURL)
 
-		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
+			log.Println("Can't request movie page", err)
+		}
 
 		// In case we enabled asynchronous jobs
 		movieScraper.Wait()
@@ -119,13 +120,15 @@ func BlusScraper(scraper **colly.Collector) {
 			// Create link to the real image if its a link to imgur's
 			// website and not directly to the image.
 			// eg. https://imgur.com/ABC to https://i.imgur.com/ABC.png
-			if strings.Index(movieImageURL, "i.imgur.com") < 0 {
+			if !strings.Contains(movieImageURL, "i.imgur.com") {
 				movieImageURL += ".png"
 				movieImageURL = strings.Replace(movieImageURL, "https://imgur.com", "https://i.imgur.com", 1)
 			}
 
 			log.Println("Found linked image", movieImageURL)
-			e.Request.Visit(movieImageURL)
+			if err := e.Request.Visit(movieImageURL); err != nil {
+				log.Println("Can't request linked image", err)
+			}
 		})
 
 	// Some old pages of blusscreens have a different layout.
@@ -135,7 +138,9 @@ func BlusScraper(scraper **colly.Collector) {
 		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("found postimage link", postImgURL)
 
-		e.Request.Visit(postImgURL)
+		if err := e.Request.Visit(postImgURL); err != nil {
+			log.Println("Can't request linked image", err)
+		}
 	})
 
 	// Another kind of weird layout mixing table and div.
@@ -148,7 +153,9 @@ func BlusScraper(scraper **colly.Collector) {
 		// "postimg.org" is not available anymore, we might need to rewrite the URLs.
 		postImgURL = strings.Replace(postImgURL, "postimg.org", "postimage.org", 1)
 
-		e.Request.Visit(postImgURL)
+		if err := e.Request.Visit(postImgURL); err != nil {
+			log.Println("Can't request linked image", err)
+		}
 	})
 
 	// Get full images from postimage.cc host.
@@ -160,7 +167,9 @@ func BlusScraper(scraper **colly.Collector) {
 			movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 			log.Println("found postimg image", movieImageURL)
 
-			e.Request.Visit(movieImageURL)
+			if err := e.Request.Visit(movieImageURL); err != nil {
+				log.Println("Can't request linked image", err)
+			}
 		})
 
 	// Get IMDB id from the IMDB link.
@@ -169,7 +178,7 @@ func BlusScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("div.wsite-image-border-none a[href*=imdb]", func(e *colly.HTMLElement) {
 		imdbLink := e.Attr("href")
 
-		log.Println("found imdb link", e.Attr("href"))
+		log.Println("found imdb link", imdbLink)
 
 		// Isolate IMDB id from IMDb url
 		re := regexp.MustCompile(`(tt\d{7,8})`)
@@ -196,7 +205,7 @@ func BlusScraper(scraper **colly.Collector) {
 	movieScraper.OnResponse(func(r *colly.Response) {
 
 		// If we're dealing with an image, save it in the correct folder
-		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
 			// Ignore weird small-sized images
 			imageSize, _ := strconv.Atoi(r.Headers.Get("Content-Length"))
@@ -211,14 +220,18 @@ func BlusScraper(scraper **colly.Collector) {
 
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				r.Save(outputImgPath)
+				if err = r.Save(outputImgPath); err != nil {
+					log.Println("Can't save image", err)
+				}
 			}
 
 			return
 		}
 	})
 
-	(*scraper).Visit(BlusURL)
+	if err := (*scraper).Visit(BlusURL); err != nil {
+		log.Println("Can't visit index page", err)
+	}
 
 	// In case we enabled asynchronous jobs
 	(*scraper).Wait()
