@@ -38,6 +38,7 @@ func main() {
         "movie-screencaps": websites.ScreenCapsScraper,
         "evanerichards":    websites.EvanERichardsScraper,
         "stillsfrmfilms":   websites.StillsFrmFilmsScraper,
+        "film-grab":        websites.FilmGrabScraper,
     }
 
     var args args
