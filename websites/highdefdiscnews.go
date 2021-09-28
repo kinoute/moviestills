@@ -108,7 +108,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 }
 
 // Isolate the movie's title by getting rid of various words on the right.
-// eg. [Remastered], "- Blu-ray Screenshots".
+// eg. "[Remastered]", "- Blu-ray Screenshots".
 func isolateMovieTitle(sentence string) string {
 
 	// Get rid of text such as "- Blu-ray Screenshots"
@@ -116,7 +116,7 @@ func isolateMovieTitle(sentence string) string {
 		sentence = sentence[:idx]
 	}
 
-	// Get rid of text such as "[Remastered"
+	// Get rid of text such as "[Remastered]"
 	if idx := strings.LastIndex(sentence, " ["); idx != -1 {
 		sentence = sentence[:idx]
 	}
