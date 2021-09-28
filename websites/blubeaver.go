@@ -51,7 +51,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 	// Since DVDBeaver is somewhat a custom website, some links
 	// might have different cases. We use the CSS4 "i" case-insensitive
 	// feature to make sure our filter doesn't miss anything.
-	(*scraper).OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
+	(*scraper).OnHTML("tr b a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie page link", movieURL)
 
