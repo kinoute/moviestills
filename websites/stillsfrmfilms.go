@@ -5,7 +5,6 @@ import (
 	"moviestills/utils"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -13,10 +12,6 @@ import (
 
 // This webpage stores a list of links to movies
 const StillsFrmFilmsURL string = "https://stillsfrmfilms.wordpress.com/movies-a-z/"
-
-// Remove GET parameters from URLs that force the resolution
-// of the displayed image.
-var imgDimensions = regexp.MustCompile(`(\?w\=\d+&h\=\d+)`)
 
 func StillsFrmFilmsScraper(scraper **colly.Collector) {
 
@@ -91,7 +86,7 @@ func StillsFrmFilmsScraper(scraper **colly.Collector) {
 
 		// Use regexp to remove potential GET parameters from the URL
 		// regarding the resolution of the displayed image.
-		movieImageURL = imgDimensions.ReplaceAllString(movieImageURL, "")
+		movieImageURL = utils.RemoveURLParams(movieImageURL)
 
 		log.Println("Found linked image", movieImageURL)
 		e.Request.Visit(movieImageURL)

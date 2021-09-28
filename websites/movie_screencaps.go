@@ -118,6 +118,11 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	// download 1 shot out of 30. Remove it if you want to download everything.
 	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(30n)", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
+
+		// We're getting weird filenames from Wordpress with "strip=all".
+		// We might need to remove some suffixes.
+		movieImageURL = utils.RemoveURLParams(movieImageURL)
+
 		log.Println("Found linked image", movieImageURL)
 		e.Request.Visit(movieImageURL)
 	})
@@ -130,11 +135,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
 
 			outputDir := r.Ctx.Get("movie_path")
-
-			// We're getting weird filenames from Wordpress.
-			// We might need to remove some suffixes.
-			fileName := strings.TrimSuffix(r.FileName(), "_strip_all")
-			outputImgPath := outputDir + "/" + fileName
+			outputImgPath := outputDir + "/" + r.FileName()
 
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
