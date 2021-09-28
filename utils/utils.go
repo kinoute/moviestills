@@ -15,6 +15,15 @@ import (
 var normalizer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 var space = regexp.MustCompile(`\s+`)
 
+// Remove GET parameters from URL.
+// Sometimes we want to strip out forced dimensions
+// or weird parameters that makes filenames weird.
+var removeParams = regexp.MustCompile(`(\?.*)$`)
+
+func RemoveURLParams(url string) string {
+	return removeParams.ReplaceAllString(url, "")
+}
+
 func Normalize(str string) (string, error) {
 
 	// Get rid of accents
