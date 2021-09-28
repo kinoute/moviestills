@@ -37,6 +37,7 @@ func main() {
         "dvdbeaver":        websites.DVDBeaverScraper,
         "evanerichards":    websites.EvanERichardsScraper,
         "film-grab":        websites.FilmGrabScraper,
+        "highdefdiscnews":  websites.HighDefDiscNewsScraper,
         "movie-screencaps": websites.ScreenCapsScraper,
         "screenmusings":    websites.ScreenMusingsScraper,
         "stillsfrmfilms":   websites.StillsFrmFilmsScraper,
