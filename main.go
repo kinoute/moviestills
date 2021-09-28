@@ -9,6 +9,7 @@ import (
 
     "github.com/alexflint/go-arg"
     "github.com/gocolly/colly/v2"
+    "github.com/gocolly/colly/v2/debug"
     "github.com/gocolly/colly/v2/extensions"
 )
 
@@ -16,8 +17,11 @@ const VERSION string = "0.1.0"
 
 // Handle arguments passed through the CLI
 type args struct {
-    Website string        `arg:"required,-w, --website" help:"Website to scrap movie stills on"`
-    Delay   time.Duration `arg:"-d, --delay" help:"Delay in seconds to avoid getting banned" default:"2s"`
+    Website  string        `arg:"required,-w, --website" help:"Website to scrap movie stills on"`
+    Delay    time.Duration `arg:"-t, --time" help:"Delay in seconds to avoid getting banned" default:"2s"`
+    Parallel int           `arg:"-p, --parallel" help:"Limit the maximum parallelism" default:"2"`
+    Async    bool          `arg:"-a, --async" help:"Enable asynchronus running job"`
+    Debug    bool          `arg:"-d, --debug" help:"Enable debugging for Colly, our scraper"`
 }
 
 func (args) Description() string {
@@ -73,13 +77,23 @@ func main() {
         colly.CacheDir("./cache"),
     )
 
+    // Enable asynchronous jobs if asked
+    if args.Async {
+        scraper.Async = true
+    }
+
+    // Enable Colly Debugging if asked through the CLI
+    if args.Debug {
+        scraper.SetDebugger(&debug.LogDebugger{})
+    }
+
     // Use random user agent and referer to avoid getting banned
     extensions.RandomUserAgent(scraper)
     extensions.Referer(scraper)
 
     // Limit parallelism and add random delay to avoid getting IP banned
     scraper.Limit(&colly.LimitRule{
-        Parallelism: 2,
+        Parallelism: args.Parallel,
         RandomDelay: args.Delay * time.Second,
     })
 
@@ -88,4 +102,5 @@ func main() {
     // This will call a file/module/func made specifically to scrap this website.
     // All available scrapers are stored in the "websites" folder.
     site_func(&scraper)
+
 }
