@@ -77,6 +77,9 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// On every movie page, we are looking for a link to the "most viewed stills".
@@ -122,5 +125,8 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(ScreenMusingsURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 
 }

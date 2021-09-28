@@ -73,7 +73,8 @@ func FilmGrabScraper(scraper **colly.Collector) {
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 
-		movieScraper.Visit(movieURL)
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Look for links on images that redirects to a "largest" version.
@@ -108,4 +109,7 @@ func FilmGrabScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(FilmGrabURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 }

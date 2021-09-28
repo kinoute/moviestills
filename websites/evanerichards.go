@@ -83,7 +83,8 @@ func EvanERichardsScraper(scraper **colly.Collector) {
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 
-		movieScraper.Visit(movieURL)
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Look for links on thumbnails that redirect to a "largest" version.
@@ -97,6 +98,7 @@ func EvanERichardsScraper(scraper **colly.Collector) {
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
@@ -104,9 +106,13 @@ func EvanERichardsScraper(scraper **colly.Collector) {
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				r.Save(outputImgPath)
 			}
+
 			return
 		}
 	})
 
 	(*scraper).Visit(EvanERichardsURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 }

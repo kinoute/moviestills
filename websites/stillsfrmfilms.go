@@ -76,7 +76,8 @@ func StillsFrmFilmsScraper(scraper **colly.Collector) {
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 
-		movieScraper.Visit(movieURL)
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Look for links on thumbnails that redirect to a "largest" version.
@@ -97,6 +98,7 @@ func StillsFrmFilmsScraper(scraper **colly.Collector) {
 	movieScraper.OnResponse(func(r *colly.Response) {
 
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
@@ -109,4 +111,7 @@ func StillsFrmFilmsScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(StillsFrmFilmsURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 }

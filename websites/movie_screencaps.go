@@ -82,6 +82,9 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Handle pagination by getting the number of pages in total first.
@@ -147,5 +150,8 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(ScreenCapsURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 
 }

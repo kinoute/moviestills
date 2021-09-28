@@ -54,6 +54,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		movieListURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie list page link", movieListURL)
 		movieListScraper.Visit(movieListURL)
+		movieListScraper.Wait()
 	})
 
 	// Before making a request print "Visiting ..."
@@ -131,6 +132,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
@@ -138,9 +140,13 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				r.Save(outputImgPath)
 			}
+
 			return
 		}
 	})
 
 	(*scraper).Visit(BeaverURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 }

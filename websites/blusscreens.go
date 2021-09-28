@@ -103,6 +103,9 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
+
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Go through each link to imgur found on the movie page
@@ -216,6 +219,9 @@ func BlusScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(BlusURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 
 }
 

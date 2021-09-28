@@ -79,7 +79,8 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 
 		movieScraper.Request("GET", movieURL, nil, ctx, nil)
 
-		movieScraper.Visit(movieURL)
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Look for links on thumbnails that redirects to a "largest" version.
@@ -93,6 +94,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 		if strings.Index(r.Headers.Get("Content-Type"), "image") > -1 {
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
@@ -105,6 +107,9 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 	})
 
 	(*scraper).Visit(HighDefDiscNewsURL)
+
+	// In case we enabled asynchronous jobs
+	(*scraper).Wait()
 }
 
 // Isolate the movie's title by getting rid of various words on the right.
