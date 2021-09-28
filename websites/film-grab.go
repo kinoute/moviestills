@@ -59,8 +59,7 @@ func FilmGrabScraper(scraper **colly.Collector) {
 
 		// Create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "film-grab", movieName)
-		err = os.MkdirAll(moviePath, os.ModePerm)
-		if err != nil {
+		if err := os.MkdirAll(moviePath, os.ModePerm); err != nil {
 			log.Println("Error creating folder for", movieName)
 			return
 		}
@@ -92,6 +91,7 @@ func FilmGrabScraper(scraper **colly.Collector) {
 		movieImageURL = utils.RemoveURLParams(movieImageURL)
 
 		log.Println("Found linked image", movieImageURL)
+
 		if err := e.Request.Visit(movieImageURL); err != nil {
 			log.Println("Can't request linked image", err)
 		}

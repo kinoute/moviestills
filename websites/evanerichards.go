@@ -92,6 +92,7 @@ func EvanERichardsScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("div.elementor-widget-container div.ngg-gallery-thumbnail a[class*=shutter]", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
+
 		if err := e.Request.Visit(movieImageURL); err != nil {
 			log.Println("Can't request linked image", err)
 		}

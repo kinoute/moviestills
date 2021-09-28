@@ -53,9 +53,11 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	(*scraper).OnHTML("a[href*='listing' i]", func(e *colly.HTMLElement) {
 		movieListURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie list page link", movieListURL)
+
 		if err := movieListScraper.Visit(movieListURL); err != nil {
 			log.Println("Can't visit movie list page", err)
 		}
+
 		movieListScraper.Wait()
 	})
 
@@ -81,6 +83,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 
 		// Create folder to save images in case it doesn't exist yet
 		moviePath := filepath.Join(".", "data", "dvdbeaver", movieName)
+
 		err = os.MkdirAll(moviePath, os.ModePerm)
 		if err != nil {
 			log.Println("Error creating folder for", movieName)
@@ -105,6 +108,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
+
 		if err := e.Request.Visit(movieImageURL); err != nil {
 			log.Println("Can't request linked image", err)
 		}
@@ -128,6 +132,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 			// anyway so let's skip them.
 			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
+
 			if movieImageHeight >= 275 && movieImageWidth >= 500 {
 				log.Println("Image seems correct in sizes, downloading", movieImageURL)
 				if err := e.Request.Visit(movieImageURL); err != nil {
