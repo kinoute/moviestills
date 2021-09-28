@@ -32,13 +32,14 @@ func main() {
 
     // Implemented scrapers as today
     sites := map[string]func(**colly.Collector){
-        "dvdbeaver":        websites.DVDBeaverScraper,
         "blubeaver":        websites.BluBeaverScraper,
         "blusscreens":      websites.BlusScraper,
-        "movie-screencaps": websites.ScreenCapsScraper,
+        "dvdbeaver":        websites.DVDBeaverScraper,
         "evanerichards":    websites.EvanERichardsScraper,
-        "stillsfrmfilms":   websites.StillsFrmFilmsScraper,
         "film-grab":        websites.FilmGrabScraper,
+        "movie-screencaps": websites.ScreenCapsScraper,
+        "screenmusings":    websites.ScreenMusingsScraper,
+        "stillsfrmfilms":   websites.StillsFrmFilmsScraper,
     }
 
     var args args
