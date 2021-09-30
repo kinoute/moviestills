@@ -102,7 +102,7 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't request movie page", err)
+			log.Println("Can't request movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -127,7 +127,7 @@ func BlusScraper(scraper **colly.Collector) {
 
 			log.Println("Found linked image", movieImageURL)
 			if err := e.Request.Visit(movieImageURL); err != nil {
-				log.Println("Can't request linked image", err)
+				log.Println("Can't request linked image:", err)
 			}
 		})
 
@@ -139,7 +139,7 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("found postimage link", postImgURL)
 
 		if err := e.Request.Visit(postImgURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -154,7 +154,7 @@ func BlusScraper(scraper **colly.Collector) {
 		postImgURL = strings.Replace(postImgURL, "postimg.org", "postimage.org", 1)
 
 		if err := e.Request.Visit(postImgURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -168,7 +168,7 @@ func BlusScraper(scraper **colly.Collector) {
 			log.Println("found postimg image", movieImageURL)
 
 			if err := e.Request.Visit(movieImageURL); err != nil {
-				log.Println("Can't request linked image", err)
+				log.Println("Can't request linked image:", err)
 			}
 		})
 
@@ -221,7 +221,7 @@ func BlusScraper(scraper **colly.Collector) {
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 
@@ -230,7 +230,7 @@ func BlusScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(BlusURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs
@@ -242,7 +242,7 @@ func BlusScraper(scraper **colly.Collector) {
 func writeJSON(data []*BlusMovie) {
 	file, err := json.MarshalIndent(data, "", " ")
 	if err != nil {
-		log.Println("Unable to create Blus Screens json file")
+		log.Println("Unable to create Blus Screens json file:", err)
 		return
 	}
 
