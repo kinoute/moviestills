@@ -71,7 +71,7 @@ func FilmGrabScraper(scraper **colly.Collector) {
 		ctx.Put("movie_path", moviePath)
 
 		if err := movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page", err)
+			log.Println("Can't visit movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -93,21 +93,23 @@ func FilmGrabScraper(scraper **colly.Collector) {
 		log.Println("Found linked image", movieImageURL)
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
 	// Check if what we just visited is an image and
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
+
 		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
+
 			outputDir := r.Ctx.Get("movie_path")
 			outputImgPath := outputDir + "/" + r.FileName()
 
 			// Don't save again it we already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 			return
@@ -115,7 +117,7 @@ func FilmGrabScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(FilmGrabURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs

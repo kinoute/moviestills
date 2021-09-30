@@ -81,7 +81,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page", err)
+			log.Println("Can't visit movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -107,7 +107,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 			for num := 2; num <= numOfPages; num++ {
 				log.Println("visiting paginated page", strconv.Itoa(num), "for", e.Request.Ctx.Get("movie_name"))
 				if err := e.Request.Visit(actualPageURL + "page/" + strconv.Itoa(num)); err != nil {
-					log.Println("Can't visit paginated page", err)
+					log.Println("Can't visit paginated page:", err)
 				}
 			}
 		}
@@ -131,7 +131,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 
 		log.Println("Found linked image", movieImageURL)
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -148,7 +148,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 
@@ -157,7 +157,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(ScreenCapsURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs

@@ -58,14 +58,14 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		// Remove weird accents and spaces from the movie's title
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", e.Text)
+			log.Println("Can't normalize Movie name for:", e.Text)
 			return
 		}
 
 		// Create folder to save images in case it doesn't exist
 		moviePath := filepath.Join(".", "data", "blubeaver", movieName)
 		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
-			log.Println("Error creating folder for", movieName)
+			log.Println("Error creating folder for:", movieName)
 			return
 		}
 
@@ -76,7 +76,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		ctx.Put("movie_path", moviePath)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't request movie page", err)
+			log.Println("Can't request movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -94,7 +94,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 		log.Println("Found linked image", movieImageURL)
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -109,7 +109,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 			// Don't save again it we already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 			return
@@ -117,7 +117,7 @@ func BluBeaverScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(BluBeaverURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs

@@ -76,7 +76,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page", err)
+			log.Println("Can't visit movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -90,7 +90,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 		mostViewedImages := e.Attr("href")
 		log.Println("get most viewed stills link for", e.Request.Ctx.Get("movie_name"))
 		if err := e.Request.Visit(mostViewedImages); err != nil {
-			log.Println("Can't request most viewed stills page", err)
+			log.Println("Can't request most viewed stills page:", err)
 		}
 	})
 
@@ -106,7 +106,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 
 		log.Println("Found linked image", movieImageURL)
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -124,7 +124,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				err = r.Save(outputImgPath)
 				if err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 
@@ -133,7 +133,7 @@ func ScreenMusingsScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(ScreenMusingsURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs

@@ -77,7 +77,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 		ctx.Put("movie_path", moviePath)
 
 		if err := movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page", err)
+			log.Println("Can't visit movie page:", err)
 		}
 
 		// In case we enabled asynchronous jobs
@@ -89,7 +89,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -104,7 +104,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 			// Don't save again it we already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 			return
@@ -112,7 +112,7 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(HighDefDiscNewsURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs

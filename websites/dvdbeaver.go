@@ -55,7 +55,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("Found movie list page link", movieListURL)
 
 		if err := movieListScraper.Visit(movieListURL); err != nil {
-			log.Println("Can't visit movie list page", err)
+			log.Println("Can't visit movie list page:", err)
 		}
 
 		movieListScraper.Wait()
@@ -99,7 +99,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("visiting movie page", movieURL)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page", err)
+			log.Println("Can't visit movie page:", err)
 		}
 	})
 
@@ -110,7 +110,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("Found linked image", movieImageURL)
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image", err)
+			log.Println("Can't request linked image:", err)
 		}
 	})
 
@@ -136,7 +136,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 			if movieImageHeight >= 275 && movieImageWidth >= 500 {
 				log.Println("Image seems correct in sizes, downloading", movieImageURL)
 				if err := e.Request.Visit(movieImageURL); err != nil {
-					log.Println("Can't request linked image", err)
+					log.Println("Can't request linked image:", err)
 				}
 			}
 		})
@@ -152,7 +152,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 			// Don't save again it we already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
 				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image", err)
+					log.Println("Can't save image:", err)
 				}
 			}
 
@@ -161,7 +161,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 	})
 
 	if err := (*scraper).Visit(BeaverURL); err != nil {
-		log.Println("Can't visit index page", err)
+		log.Println("Can't visit index page:", err)
 	}
 
 	// In case we enabled asynchronous jobs
