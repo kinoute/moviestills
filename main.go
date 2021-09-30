@@ -17,11 +17,11 @@ const VERSION string = "0.1.0"
 
 // Handle arguments passed through the CLI
 type args struct {
-    Website  string        `arg:"required,-w, --website" help:"Website to scrap movie stills on"`
-    Delay    time.Duration `arg:"-t, --time" help:"Delay in seconds to avoid getting banned" default:"2s"`
-    Parallel int           `arg:"-p, --parallel" help:"Limit the maximum parallelism" default:"2"`
-    Async    bool          `arg:"-a, --async" help:"Enable asynchronus running job"`
-    Debug    bool          `arg:"-d, --debug" help:"Enable debugging for Colly, our scraper"`
+    Website  string        `arg:"required,-w, --website,env:WEBSITE" help:"Website to scrap movie stills on"`
+    Delay    time.Duration `arg:"-t, --time,env:DELAY" help:"Delay in seconds to avoid getting banned" default:"2s"`
+    Parallel int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"2"`
+    Async    bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running job"`
+    Debug    bool          `arg:"-d, --debug,env:DEBUG" help:"Enable debugging for Colly, our scraper"`
 }
 
 func (args) Description() string {
@@ -93,10 +93,11 @@ func main() {
 
     // Limit parallelism and add random delay to avoid getting IP banned
     if err := scraper.Limit(&colly.LimitRule{
+        DomainGlob:  "*",
         Parallelism: args.Parallel,
         RandomDelay: args.Delay * time.Second,
     }); err != nil {
-        log.Println("Can't change scraper limit options", err)
+        log.Println("Can't change scraper limit options:", err)
     }
 
     // Here we call the website module depending on the website provided
