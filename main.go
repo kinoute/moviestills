@@ -21,6 +21,7 @@ type args struct {
     Delay    time.Duration `arg:"-t, --time,env:DELAY" help:"Delay in seconds to avoid getting banned" default:"2s"`
     Parallel int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"2"`
     Async    bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running job"`
+    CacheDir string        `arg:"-c, --cache-dir,env:CACHE_DIR" help:"Where to cache scraped websites pages" default:"cache"`
     Debug    bool          `arg:"-d, --debug,env:DEBUG" help:"Enable debugging for Colly, our scraper"`
 }
 
@@ -72,9 +73,18 @@ func main() {
 
     // If we're here, it means we have a valid scraper for a valid website!
 
+    // Create the "cache" directory.
+    // This folder stores the scraped websites pages.
+    // If we can't create it, stop right there.
+    if _, err := os.Stat(args.CacheDir); os.IsNotExist(err) {
+        if err = os.Mkdir(args.CacheDir, os.ModePerm); err != nil {
+            log.Fatalln("The cache directory", args.CacheDir, "can't be created:", err)
+        }
+    }
+
     // Instantiate main scraper
     scraper := colly.NewCollector(
-        colly.CacheDir("./cache"),
+        colly.CacheDir(args.CacheDir),
     )
 
     // Enable asynchronous jobs if asked
