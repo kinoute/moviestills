@@ -1,0 +1,6 @@
+.git
+cache/
+data/
+*.json
+*.db
+**/.DS_Store
