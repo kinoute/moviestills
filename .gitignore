@@ -5,3 +5,4 @@ data/*
 *.db
 *.json
 cpuprofile
+**/.DS_Store
