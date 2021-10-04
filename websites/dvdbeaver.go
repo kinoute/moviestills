@@ -114,7 +114,7 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		}
 	})
 
-	// On DVD reviews, there is almost never clickable large version.
+	// On DVD reviews, there are almost never clickable large versions.
 	// Therefore we download the images as shown on the webpage and
 	// be sure we avoid some weird ones (subtitles, DVD covers etc).
 	movieScraper.OnHTML(

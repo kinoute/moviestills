@@ -117,7 +117,7 @@ func BlusScraper(scraper **colly.Collector) {
 			movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 			log.Println("inside movie page for", e.Request.Ctx.Get("movie_name"))
 
-			// Create link to the real image if its a link to imgur's
+			// Create link to the real image if it's a link to imgur's
 			// website and not directly to the image.
 			// eg. https://imgur.com/ABC to https://i.imgur.com/ABC.png
 			if !strings.Contains(movieImageURL, "i.imgur.com") {

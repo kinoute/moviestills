@@ -125,7 +125,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(30n)", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 
-		// We're getting weird filenames from Wordpress with "strip=all".
+		// We're getting weird filenames from Wordpress with "strip=all" at the end.
 		// We might need to remove some suffixes.
 		movieImageURL = utils.RemoveURLParams(movieImageURL)
 
