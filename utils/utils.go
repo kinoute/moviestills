@@ -25,14 +25,13 @@ var normalizer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), n
 var space = regexp.MustCompile(`\s+`)
 
 func Normalize(str string) (string, error) {
-
 	// Get rid of accents
 	s, _, err := transform.String(normalizer, str)
 	if err != nil {
 		return "", err
 	}
 
-	// Get rid of trailing/leading accents and also multiple spaces
+	// Get rid of trailing/leading spaces and also multiple spaces
 	s = strings.TrimSpace(s)
 	s = space.ReplaceAllString(s, " ")
 	return s, err
