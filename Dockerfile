@@ -28,4 +28,4 @@ WORKDIR /root
 COPY --from=builder /app/moviestills .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-CMD ["./moviestills"]
+ENTRYPOINT ["./moviestills"]
