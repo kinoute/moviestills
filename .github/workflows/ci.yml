@@ -117,10 +117,5 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
           push: true
-          add_git_labels: true
-          tags: latest
-          tag_with_ref: true
-          tag_with_sha: true
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: kinoute/moviestills:latest
