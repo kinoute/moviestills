@@ -121,7 +121,7 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 	// many similar snapshots and it's going to take forever.
 	//
 	// Therefore, we added :nth-of-type(30n) to the CSS selector to only
-	// download 1 shot out of 30. Remove it if you want to download everything.
+	// download 1 shot every 30 shots. Remove it if you want to download everything.
 	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(30n)", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 
