@@ -12,6 +12,7 @@ import (
 	"github.com/gocolly/colly/v2/extensions"
 )
 
+const AUTHOR string = "Yann Defretin"
 const VERSION string = "0.1.0"
 
 // Handle arguments passed through the CLI
@@ -28,7 +29,7 @@ func (args) Description() string {
 }
 
 func (args) Version() string {
-	return "moviestills " + VERSION
+	return "moviestills " + VERSION + " – " + AUTHOR
 }
 
 func main() {
