@@ -119,5 +119,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: moviestills:latest
+          add_git_labels: true
+          tags: latest
+          tag_with_ref: true
+          tag_with_sha: true
           labels: ${{ steps.meta.outputs.labels }}
