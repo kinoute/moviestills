@@ -21,14 +21,6 @@ jobs:
 
           golangci-lint run
 
-  markdown-lint:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-    - name: Run mdl
-      uses: actionshub/markdownlint@main
-
   dockerfile-lint:
     runs-on: ubuntu-latest
     steps:

@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-file MD013 -->
 # Movie Stills
 
 A Go CLI application to scrap various websites in order to get high-quality movie snapshots.
