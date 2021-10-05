@@ -208,7 +208,11 @@ func BlusScraper(scraper **colly.Collector) {
 		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
 			// Ignore weird small-sized images
-			imageSize, _ := strconv.Atoi(r.Headers.Get("Content-Length"))
+			imageSize, err := strconv.Atoi(r.Headers.Get("Content-Length"))
+			if err != nil {
+				log.Println("Can't get image size from headers:", err)
+				return
+			}
 
 			if imageSize < MinimumSize {
 				log.Println("Small-sized image, not downloading", r.FileName())
