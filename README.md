@@ -3,23 +3,7 @@
 [![CI](https://github.com/kinoute/moviestills/actions/workflows/ci.yml/badge.svg)](https://github.com/kinoute/moviestills/actions/workflows/ci.yml)
 [![Go Report](https://goreportcard.com/badge/github.com/kinoute/moviestills)](https://goreportcard.com/report/github.com/kinoute/moviestills)
 
-A Go CLI application to scrap various websites in order to get high-quality movie snapshots.
-
-## Supported Websites
-
-As today, scrapers were implemented for the following websites in `moviestills`:
-
-| Website                                        | Simplified Name[^1] | Description                                                  | Number of movies |
-| ---------------------------------------------- | ------------------- | ------------------------------------------------------------ | ---------------- |
-| [BluBeaver](http://blubeaver.ca)               | blubeaver           | Extension of [DVDBeaver](http://dvdbeaver.com), this time dedicated to Blu-Ray reviews only. Reviews are great to check the quality of BD releases with lot of technical details. Only snapshots on "free" access are scraped. | ~3567            |
-| [BlusScreens](https://www.bluscreens.net)      | bluscreens          | Website with high resolution screen captures taken directly from different Blu-ray releases by [Blusscreens](https://twitter.com/Bluscreens). | ~452             |
-| [DVDBeaver](http://dvdbeaver.com)              | dvdbeaver           | ***Not recommended***.[^2] A massive list of DVD/BD reviews with a lot of movie snapshots. It includes the BD reviews available in [BluBeaver](http://blubeaver.ca). It is advised to use the latter instead. | ~9975            |
-| [EvanERichards](https://www.evanerichards.com) | evanerichards       | A short but interesting list of movies with a lot of snapshots for each. Also includes some TV Series but they are ignored by the scraper. | ~245             |
-| [Film-Grab](https://film-grab.com)             | film-grab           | A great list of movies with a few snapshots for each. Snapshots were cherry-picked and show nice cinematography. | ~2829            |
-
-[^1]: The name column displays the website's name to use with `moviestills` to start the scraping job. Eg `—website blubeaver` for the BluBeaver.ca website.
-
-[^2]: While DVDBeaver provides a lot of great movie snapshots from DVD reviews, it is harder to filter correctly the movie snapshots on the reviews pages. Expect a lot of false positives (DVD covers, banners etc).
+A Go CLI application to scrap various websites in order to get high-quality movie snapshots. See the list of the [Supported Websites](#supported-websites).
 
 ## Installation
 
@@ -114,6 +98,22 @@ data # where to store movie snapshots
 │   │   ├── film3_blu_ray_reviews55_12_angry_men_blu_ray_large_large_12_angry_men_blu_ray_1x.jpg
 │   │   ├── film3_blu_ray_reviews55_12_angry_men_blu_ray_large_large_12_angry_men_blu_ray_2.jpg
 ```
+
+## Supported Websites
+
+As today, scrapers were implemented for the following websites in `moviestills`:
+
+| Website                                        | Simplified Name [1]() | Description                                                  | Number of movies |
+| ---------------------------------------------- | --------------------- | ------------------------------------------------------------ | ---------------- |
+| [BluBeaver](http://blubeaver.ca)               | blubeaver             | Extension of [DVDBeaver](http://dvdbeaver.com), this time dedicated to Blu-Ray reviews only. Reviews are great to check the quality of BD releases with lot of technical details. Only snapshots on "free" access are scraped. | ~3567            |
+| [BlusScreens](https://www.bluscreens.net)      | bluscreens            | Website with high resolution screen captures taken directly from different Blu-ray releases by [Blusscreens](https://twitter.com/Bluscreens). | ~452             |
+| [DVDBeaver](http://dvdbeaver.com)              | dvdbeaver             | ***Not recommended***. [2]() A massive list of DVD/BD reviews with a lot of movie snapshots. It includes the BD reviews available in [BluBeaver](http://blubeaver.ca). It is advised to use the latter instead. | ~9975            |
+| [EvanERichards](https://www.evanerichards.com) | evanerichards         | A short but interesting list of movies with a lot of snapshots for each. Also includes some TV Series but they are ignored by the scraper. | ~245             |
+| [Film-Grab](https://film-grab.com)             | film-grab             | A great list of movies with a few snapshots for each. Snapshots were cherry-picked and show nice cinematography. | ~2829            |
+
+[1](). The name column displays the website's name to use with `moviestills` to start the scraping job. Eg `—website blubeaver` for the BluBeaver.ca website.
+
+[2](). While DVDBeaver provides a lot of great movie snapshots from DVD reviews, it is harder to filter correctly the movie snapshots on the reviews pages. Expect a lot of false positives (DVD covers, banners etc).
 
 ## Development
 
