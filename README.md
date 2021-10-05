@@ -1,5 +1,7 @@
 # Movie Stills
 
+[![Go](https://github.com/kinoute/moviestills/actions/workflows/ci.yml/badge.svg](https://github.com/kinoute/moviestills/actions/workflows/ci.yml)
+
 A Go CLI application to scrap various websites in order to get high-quality movie snapshots.
 
 ## Installation
