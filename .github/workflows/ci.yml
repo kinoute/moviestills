@@ -115,10 +115,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          tags: latest
           images: |
             hivacruz/moviestills
             ghcr.io/${{ github.repository }}
-          tags: latest
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v2
