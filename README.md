@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-file MD013 -->
 # Movie Stills
 
 A Go CLI application to scrap various websites in order to get high-quality movie snapshots.
@@ -87,7 +88,7 @@ For boolean arguments such as `--async` or `--debug`, their equivalent as enviro
 
 ### Cache
 
-By default, every scraped page will be stored in a `cache` folder. You can change this through the options as listed above.
+By default, every scraped page will be cached in a `cache` folder. You can change this through the options as listed above. This is an important folder as it stores everything and avoid requesting again some websites pages when there is no need to.
 
 ### Data
 
@@ -102,4 +103,3 @@ data/blubeaver
 │   ├── film3_blu_ray_reviews55_12_angry_men_blu_ray_large_large_12_angry_men_blu_ray_1x.jpg
 │   ├── film3_blu_ray_reviews55_12_angry_men_blu_ray_large_large_12_angry_men_blu_ray_2.jpg
 ```
-<!-- markdownlint-disable-file MD013 -->
