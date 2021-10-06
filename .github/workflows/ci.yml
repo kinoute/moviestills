@@ -125,14 +125,14 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-        # Uploading the README.md is not a core feature of docker/build-push-action yet
-       - name: push README to Dockerhub
-         uses: christian-korneck/update-container-description-action@v1
-         env:
-           DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
-           DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
-         with:
-           destination_container_repo: hivacruz/moviestills
-           provider: dockerhub
-           short_description: "Docker image for moviestills, a small CLI app to download movie snapshots."
-           readme_file: './README.md'
+      # Uploading the README.md is not a core feature of docker/build-push-action yet
+      - name: push README to Dockerhub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
+        with:
+          destination_container_repo: hivacruz/moviestills
+          provider: dockerhub
+          short_description: "Docker image for moviestills, a small CLI app to download movie snapshots."
+          readme_file: './README.md'
