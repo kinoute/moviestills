@@ -30,6 +30,8 @@ Docker comes to the rescue, providing an easy way how to run `moviestills` on mo
 
 #### GitHub Registry
 
+The "latest" image is built from the master branch on every push. You can see all the other tags (releases) available [here](https://github.com/kinoute/moviestills/pkgs/container/moviestills/versions).
+
 ```bash
 docker run \
     --name moviestills \
@@ -41,6 +43,8 @@ docker run \
 ```
 
 #### Docker Hub
+
+You can can see all the image tags available on the Docker Hub [here](https://hub.docker.com/r/hivacruz/moviestills/tags?page=1&ordering=last_updated).
 
 ```bash
 docker run \
@@ -57,8 +61,7 @@ As you can see, you can also use environment variables instead of CLI arguments.
 ## Usage
 
 ```bash
-Usage: moviestills --website WEBSITE 
-									 [--parallel PARALLEL] [--async] [--cache-dir CACHE-DIR] [--debug]
+Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug]
 
 Options:
   --website WEBSITE, -w WEBSITE
@@ -68,9 +71,11 @@ Options:
   --async, -a            Enable asynchronus running jobs [env: ASYNC]
   --cache-dir CACHE-DIR, -c CACHE-DIR
                          Where to cache scraped websites pages [default: cache, env: CACHE_DIR]
-  --debug, -d            Enable debugging on Colly, our scraper library [env: DEBUG]
-  --help, -h             display this help and leave
-  --version              display version and leave
+  --data-dir DATA-DIR, -f DATA-DIR
+                         Where to store movie snapshots [default: data, env: DATA_DIR]
+  --debug, -d            Enable Colly Debugger, our scraper [env: DEBUG]
+  --help, -h             display this help and exit
+  --version              display version and exit
 ```
 
 **Note**: CLI arguments will always override environment variables. Therefore, if you set `WEBSITE` as an environment variable and also use `—website` as a CLI argument, only the latter will be passed to the app.
@@ -104,7 +109,7 @@ data # where to store movie snapshots
 
 As today, scrapers were implemented for the following websites in `moviestills`:
 
-| Website                                        | Simplified Name [<sup>1</sup>]() | Description                                                  | Number of movies [<sup>3</sup>]() |
+| Website                                        | Simplified Name [<sup>1</sup>]() | Description                                                  | Movies [<sup>3</sup>]() |
 | ---------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | ---------------- |
 | [BluBeaver](http://blubeaver.ca)               | blubeaver                       | Extension of [DVDBeaver](http://dvdbeaver.com), this time dedicated to Blu-Ray reviews only. Reviews are great to check the quality of BD releases with lot of technical details. Only snapshots on "free" access are scraped. | ~3567            |
 | [BlusScreens](https://www.bluscreens.net)      | bluscreens                      | Website with high resolution screen captures taken directly from different Blu-ray releases by [Blusscreens](https://twitter.com/Bluscreens). | ~452             |
@@ -160,7 +165,8 @@ If you don't have Go installed, you can build a Docker Image to start developing
 
 ```bash
 # build development image
-docker --tag moviestills-dev . --target base
+docker --tag moviestills-dev . \
+	--target base
 ```
 
 Then start and go inside the container:
@@ -182,15 +188,15 @@ To run your code, you can use `go run .` inside the container, test it, build it
 
 ## Contribute
 
-This is my first project in Golang. Therefore, pull requests, suggestions or bug reports are appreciated. A major refactoring is not excluded while I still learn the language.
+This is my first project in Golang. Therefore, pull requests, suggestions or bug reports are appreciated. A major refactoring is not excluded since I'm still learning the language.
 
 ### Add a new website
 
 You can contribute to this scraper by adding a new website which provides high-quality movie snapshots. To do that, there are four steps:
 
 1. Create a new file in the `websites` folder with the *simplified* name of the website (eg. `yahoo.go`). Check how other websites were implemented and scraped with the [Colly](https://github.com/gocolly/colly) library. You need to define a main URL as a constant (the first URL that will get visited) and a main function such as `yahooScraper()` where your Colly logic will do the work.
-2. Once you created a scraper for a website, you need to add this new scraper in the available options of the app in `main.go`. Edit the `sites` map by adding the *simplified* name of the website as a key and add the scraper's function as a value (eg. `websites.yahooScraper`).
-3. Create a unit test for the website, eg `yahoo_test.go`. For that test, we are not going to test with Colly but only with [GoQuery](https://github.com/PuerkitoBio/goquery), a library that makes HTML/CSS parsing easy. We just want to make sure the CSS selectors we use in our scraper are still up-to-date and are still filtering correctly the data we are looking for.
+2. Once you created a scraper for a website, you need to add this new scraper in the available options of the app in `main.go`. Edit the `sites` map by adding the *simplified* name of the website as a key and the scraper's function as a value (eg. `websites.yahooScraper`).
+3. Create a unit test for the website, eg `yahoo_test.go`. For that test, we are not going to test with Colly but only with [GoQuery](https://github.com/PuerkitoBio/goquery), a library that makes HTML/CSS parsing easy, on which Colly is based. We just want to make sure the CSS selectors we use in our scraper are still up-to-date and are still filtering correctly the data we are looking for.
 4. Edit the [Supported Websites](#supported-websites) table in the `README` file and write detailed informations about the website you added – please make sure websites are sorted alphabetically in the table.
 
 ## Support
@@ -199,10 +205,14 @@ Most of the websites we are scraping are owned by individuals who just want to s
 
 You can support some of the webmasters behind these nice galleries:
 
-* The owner of DVDBeaver/BluBeaver has a Patreon page where you can support him and also get access to a lot more movie snapshots in great quality. Here is the link: https://www.patreon.com/dvdbeaver ;
+* The owner of DVDBeaver/BluBeaver has a Patreon page where you can support him and also get access to a lot more movie snapshots in great quality, which we don't scrap. Here is the link: https://www.patreon.com/dvdbeaver ;
 * The man behind Film-Grab also has a Patreon page where you can send him some love: https://www.patreon.com/filmgrab.
 
 I couldn't find any support page for the other websites but you can support some of them by using their affiliated links for example.
 
 Just be gentle while scraping: some are hosting the images on their own servers!
+
+## Credits
+
+* Created by [Yann Defretin](https://github.com/kinoute).
 
