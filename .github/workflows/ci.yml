@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
+  # check our go files
   go-lint:
     runs-on: ubuntu-latest
     steps:
@@ -21,6 +22,7 @@ jobs:
 
           golangci-lint run
 
+  # check our dockerfiles
   dockerfile-lint:
     runs-on: ubuntu-latest
     steps:
@@ -32,48 +34,40 @@ jobs:
         with:
           dockerfile: "Dockerfile"
 
+  # make sure our tests are passing
   test:
-    ## We want to define a strategy for our job
     strategy:
-      ## this will contain a matrix of all of the combinations
-      ## we wish to test again:
       matrix:
         go-version: [1.15.x, 1.16.x, 1.17.x]
         platform: [ubuntu-latest, macos-latest, windows-latest]
 
-    ## Defines the platform for each test run
     runs-on: ${{ matrix.platform }}
 
-    ## the steps that will be run through for each version and platform
-    ## combination
     steps:
-    ## sets up go based on the version
+
     - name: Install Go
       uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
 
-    ## checks out our code locally so we can work with the files
     - name: Checkout code
       uses: actions/checkout@v2
 
-    ## runs go test ./...
     - name: Test
       run: go test -v ./...
 
+  # make sure go build works on various OS/Go versions
   build:
-    ## We want to define a strategy for our job
     strategy:
-      ## this will contain a matrix of all of the combinations
-      ## we wish to test again:
       matrix:
         go-version: [1.15.x, 1.16.x, 1.17.x]
         platform: [ubuntu-latest, macos-latest, windows-latest]
 
-    ## Defines the platform for each test run
     runs-on: ${{ matrix.platform }}
 
+    # only run this job if the "test" job has passed
     needs: [test]
+
     steps:
     - uses: actions/checkout@v2
 
@@ -85,10 +79,13 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-  # build and push docker image to docker registries
+  # build and push image to docker registries
+  # (github packages & docker hub)
   docker-build-push-image:
     runs-on: ubuntu-latest
-    #needs: [build]
+
+    # oonly build/push image if the build job passed
+    needs: [build]
 
     permissions:
       contents: read
@@ -127,33 +124,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-    # permissions:
-    #   contents: read
-    #   packages: write
-
-    # steps:
-    #   - name: Checkout repository
-    #     uses: actions/checkout@v2
-
-    #   - name: Log in to the Container registry
-    #     uses: docker/login-action@v1
-    #     with:
-    #       registry: ${{ env.REGISTRY }}
-    #       username: ${{ github.actor }}
-    #       password: ${{ secrets.GITHUB_TOKEN }}
-
-    #   - name: Extract metadata (tags, labels) for Docker
-    #     id: meta
-    #     uses: docker/metadata-action@v3
-    #     with:
-    #       images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-    #       tags: latest
-
-    #   - name: Build and push Docker image
-    #     uses: docker/build-push-action@v2
-    #     with:
-    #       context: .
-    #       push: true
-    #       tags: ${{ steps.meta.outputs.tags }}
-    #       labels: ${{ steps.meta.outputs.labels }}
