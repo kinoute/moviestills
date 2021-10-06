@@ -1,39 +1,13 @@
 name: CI
 
+# Only trigger, when the linting workflow succeeded
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_run:
+    workflows: ["Linting"]
+    types:
+      - completed
 
 jobs:
-  # check our go files
-  go-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          stable: 'false'
-          go-version: '1.17.1'
-      - name: Lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.42.1
-
-          golangci-lint run
-
-  # check our dockerfiles
-  dockerfile-lint:
-    runs-on: ubuntu-latest
-    steps:
-
-      - uses: actions/checkout@v2
-
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@master
-        with:
-          dockerfile: "Dockerfile"
-
   # make sure our tests are passing
   test:
     strategy:
@@ -57,7 +31,7 @@ jobs:
       run: go test -v ./...
 
   # make sure go build works on various OS/Go versions
-  build:
+  go-build:
     strategy:
       matrix:
         go-version: [1.15.x, 1.16.x, 1.17.x]
@@ -78,61 +52,3 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-
-  # build and push image to docker registries
-  # (github packages & docker hub)
-  docker-build-push-image:
-    runs-on: ubuntu-latest
-
-    # oonly build/push image if the build job passed
-    needs: [build]
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          tags: latest
-          images: |
-            hivacruz/moviestills
-            ghcr.io/${{ github.repository }}
-
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      # Uploading the README.md is not a core feature of docker/build-push-action yet
-      - name: push README to Dockerhub
-        uses: christian-korneck/update-container-description-action@v1
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
-        with:
-          destination_container_repo: hivacruz/moviestills
-          provider: dockerhub
-          short_description: "Docker image for moviestills, a small CLI app to download movie snapshots."
-          readme_file: './README.md'
