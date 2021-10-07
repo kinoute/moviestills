@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
@@ -35,4 +37,15 @@ func Normalize(str string) (string, error) {
 	s = strings.TrimSpace(s)
 	s = space.ReplaceAllString(s, " ")
 	return s, err
+}
+
+// Create (nested) folder if it doesn't exist yet.
+func CreateFolder(folder ...string) (string, error) {
+	path := filepath.Join(folder...)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err = os.MkdirAll(path, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+	return path, nil
 }
