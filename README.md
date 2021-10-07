@@ -1,9 +1,16 @@
-# Movie Stills
+<h1 align="center">
+  <img src="./.github/images/banner.png" alt="movie stills" height="250px">
+  <br>
+  Movie Stills
+  </br>
+</h1>
+<h4 align="center">
+A Go CLI application to scrap various websites in order to get high-quality movie snapshots. See the list of <a href="#supported-websites">Supported Websites</a>.
+</h4>
 
-[![CI](https://github.com/kinoute/moviestills/actions/workflows/ci.yml/badge.svg)](https://github.com/kinoute/moviestills/actions/workflows/ci.yml)
-[![Go Report](https://goreportcard.com/badge/github.com/kinoute/moviestills)](https://goreportcard.com/report/github.com/kinoute/moviestills)
-
-A Go CLI application to scrap various websites in order to get high-quality movie snapshots. See the list of [Supported Websites](#supported-websites).
+<p align="center">
+<a href="https://github.com/kinoute/moviestills/actions/workflows/ci.yml"><img src="https://github.com/kinoute/moviestills/actions/workflows/ci.yml/badge.svg" alt="CI" style="max-width: 100%;"></a>
+<a href="https://goreportcard.com/report/github.com/kinoute/moviestills" rel="nofollow"><img src="https://camo.githubusercontent.com/3a2d91e3941d329aa63e6d1c8b834e7c3d6ab2c8ed247a774477d1e694b3851d/68747470733a2f2f676f7265706f7274636172642e636f6d2f62616467652f6769746875622e636f6d2f6b696e6f7574652f6d6f7669657374696c6c73" alt="Go Report" data-canonical-src="https://goreportcard.com/badge/github.com/kinoute/moviestills" style="max-width: 100%;"></a></p>
 
 ## Installation
 
@@ -105,6 +112,12 @@ data # where to store movie snapshots
 │   │   ├── film3_blu_ray_reviews55_12_angry_men_blu_ray_large_large_12_angry_men_blu_ray_3.jpg
 ```
 
+You can change the default `data` folder with the `—data-dir` CLI argument or the `DATA_DIR` environment variable.
+
+Again, if you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. 
+
+Do note that, when using Docker, you should not bother editing the *internal* `cache` and `data` folders paths or names as you have volumes to store and get access to these files on the host machine.
+
 ## Supported Websites
 
 As today, scrapers were implemented for the following websites in `moviestills`:
@@ -127,7 +140,7 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 
 [<sup>3</sup>]() : Approximate number of movies calculated on October 5th, 2021. 
 
-**Contribute:** If you want to add a new website to the scraper, please read how to set up a [development workflow](#development) and [how to contribute](#contribute).
+**Contribute:** If you want to fix or add a new website to the scraper, please read how to set up a [development workflow](#development) and [how to contribute](#contribute).
 
 ## Development
 
@@ -190,6 +203,8 @@ To run your code, you can use `go run .` inside the container, test it, build it
 
 This is my first project in Golang. Therefore, pull requests, suggestions or bug reports are appreciated. A major refactoring is not excluded since I'm still learning the language.
 
+A lot of things included here might look *overkill* for such a small app (linting, packages etc) but I thought setting a complete workflow would be interesting. Don't hesitate to make it better!
+
 ### Add a new website
 
 You can contribute to this scraper by adding a new website which provides high-quality movie snapshots. To do that, there are four steps:
@@ -212,7 +227,7 @@ I couldn't find any support page for the other websites but you can support some
 
 Just be gentle while scraping: some are hosting the images on their own servers!
 
-## Credits
+## 	Credits
 
 * Created by [Yann Defretin](https://github.com/kinoute).
 
