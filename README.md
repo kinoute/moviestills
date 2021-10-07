@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="./.github/images/banner.png" alt="movie stills" height="250px">
+  <img src="./.github/images/banner.jpeg" alt="movie stills" height="200px">
   <br>
   Movie Stills
   </br>
