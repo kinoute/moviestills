@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/config"
 	"moviestills/utils"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -13,7 +13,7 @@ import (
 // This webpage stores a list of links to movie pages with Blu-rays images
 const HighDefDiscNewsURL string = "https://highdefdiscnews.com/blu-ray-screenshots/"
 
-func HighDefDiscNewsScraper(scraper **colly.Collector) {
+func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) {
 
 	log.Println("Starting HighDefDiscNews Scraper...")
 
@@ -64,9 +64,9 @@ func HighDefDiscNewsScraper(scraper **colly.Collector) {
 		}
 
 		// Create folder to save images in case it doesn't exist
-		moviePath := filepath.Join(".", "data", "highdefdiscnews", movieName)
-		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
-			log.Println("Error creating folder for", movieName)
+		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
+		if err != nil {
+			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
 			return
 		}
 

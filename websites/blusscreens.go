@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"moviestills/config"
 	"moviestills/utils"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,7 +35,7 @@ type BlusMovie struct {
 	Path  string
 }
 
-func BlusScraper(scraper **colly.Collector) {
+func BlusScraper(scraper **colly.Collector, options *config.Options) {
 
 	log.Println("Starting Blus Screens Scraper...")
 
@@ -86,9 +86,9 @@ func BlusScraper(scraper **colly.Collector) {
 		log.Println("Found movie link for", movieName)
 
 		// Create folder to save images in case it doesn't exist
-		moviePath := filepath.Join(".", "data", "blusscreens", movieName)
-		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
-			log.Println("Error creating folder for", movieName)
+		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
+		if err != nil {
+			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
 			return
 		}
 

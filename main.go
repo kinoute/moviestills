@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
+	"moviestills/config"
+	"moviestills/utils"
 	"moviestills/websites"
-	"os"
 	"strings"
 
 	"github.com/alexflint/go-arg"
@@ -12,30 +13,10 @@ import (
 	"github.com/gocolly/colly/v2/extensions"
 )
 
-const AUTHOR string = "Yann Defretin"
-const VERSION string = "0.1.0"
-
-// Handle arguments passed through the CLI
-type args struct {
-	Website  string `arg:"required,-w, --website,env:WEBSITE" help:"Website to scrap movie stills on"`
-	Parallel int    `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"2"`
-	Async    bool   `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running jobs"`
-	CacheDir string `arg:"-c, --cache-dir,env:CACHE_DIR" help:"Where to cache scraped websites pages" default:"cache"`
-	Debug    bool   `arg:"-d, --debug,env:DEBUG" help:"Enable Colly Debugger, our scraper"`
-}
-
-func (args) Description() string {
-	return "this program can scrap various websites to get high quality movie snapshots."
-}
-
-func (args) Version() string {
-	return "moviestills " + VERSION + " – " + AUTHOR
-}
-
 func main() {
 
 	// Implemented scrapers as today
-	sites := map[string]func(**colly.Collector){
+	sites := map[string]func(**colly.Collector, *config.Options){
 		"blubeaver":        websites.BluBeaverScraper,
 		"blusscreens":      websites.BlusScraper,
 		"dvdbeaver":        websites.DVDBeaverScraper,
@@ -47,27 +28,28 @@ func main() {
 		"stillsfrmfilms":   websites.StillsFrmFilmsScraper,
 	}
 
-	var args args
-	params := arg.MustParse(&args)
+	// Handle arguments passed through the CLI or environment variables
+	// Check config/config.go for the list of available options.
+	var options config.Options
+	arg.MustParse(&options)
 
-	// Check website CLI argument
-	if args.Website == "" {
-		params.Fail("A website must be set through arguments.")
+	// Check presence of website argument
+	if options.Website == "" {
+		log.Fatalln("A website must be set through arguments.")
 	}
 
 	// Verify if we have a scrapper for the given website.
 	// If we do, "site_func" will now contain a function listed in
 	// the sites map that matches a module for this specific
 	// website stored in the "websites" folder.
-	site_func, scraper_exists := sites[strings.ToLower(args.Website)]
+	site_func, scraper_exists := sites[strings.ToLower(options.Website)]
 	if !scraper_exists {
-		log.SetFlags(0)
 		log.Println("We don't have a scraper for this website.")
 		log.Println("List of available scrapers:")
 		for site := range sites {
 			log.Println("–", site)
 		}
-		os.Exit(1)
+		log.Fatalln("See how you can add support for a new website: https://github.com/kinoute/moviestills#contribute")
 	}
 
 	// If we're here, it means we have a valid scraper for a valid website!
@@ -75,24 +57,29 @@ func main() {
 	// Create the "cache" directory.
 	// This folder stores the scraped websites pages.
 	// If we can't create it, stop right there.
-	if _, err := os.Stat(args.CacheDir); os.IsNotExist(err) {
-		if err = os.Mkdir(args.CacheDir, os.ModePerm); err != nil {
-			log.Fatalln("The cache directory", args.CacheDir, "can't be created:", err)
-		}
+	if _, err := utils.CreateFolder(options.CacheDir); err != nil {
+		log.Fatalln("The cache directory", options.CacheDir, "can't be created:", err)
+	}
+
+	// Create the "data" directory.
+	// This folder stores the movie snapshots.
+	// If we can't create it, stop right there.
+	if _, err := utils.CreateFolder(options.DataDir); err != nil {
+		log.Fatalln("The data directory", options.DataDir, "can't be created:", err)
 	}
 
 	// Instantiate main scraper
 	scraper := colly.NewCollector(
-		colly.CacheDir(args.CacheDir),
+		colly.CacheDir(options.CacheDir),
 	)
 
 	// Enable asynchronous jobs if asked
-	if args.Async {
+	if options.Async {
 		scraper.Async = true
 	}
 
 	// Enable Colly Debugging if asked through the CLI
-	if args.Debug {
+	if options.Debug {
 		scraper.SetDebugger(&debug.LogDebugger{})
 	}
 
@@ -103,7 +90,7 @@ func main() {
 	// Limit parallelism and add random delay to avoid getting IP banned
 	if err := scraper.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
-		Parallelism: args.Parallel,
+		Parallelism: options.Parallel,
 	}); err != nil {
 		log.Println("Can't change scraper limit options:", err)
 	}
@@ -112,6 +99,6 @@ func main() {
 	// in the CLI by the user.
 	// This will call a file/module/func made specifically to scrap this website.
 	// All available scrapers are stored in the "websites" folder.
-	site_func(&scraper)
+	site_func(&scraper, &options)
 
 }

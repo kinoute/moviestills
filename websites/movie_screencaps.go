@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/config"
 	"moviestills/utils"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -14,7 +14,7 @@ import (
 // Page that lists all movies available, sorted alphabetically
 const ScreenCapsURL string = "https://movie-screencaps.com/movie-directory/"
 
-func ScreenCapsScraper(scraper **colly.Collector) {
+func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 
 	log.Println("Starting Movie-Screencaps Scraper...")
 
@@ -65,9 +65,9 @@ func ScreenCapsScraper(scraper **colly.Collector) {
 		log.Println("Found movie link for", movieName)
 
 		// Create folder to save images in case it doesn't exist
-		moviePath := filepath.Join(".", "data", "movie-screencaps", movieName)
-		if err = os.MkdirAll(moviePath, os.ModePerm); err != nil {
-			log.Println("Error creating folder for", movieName)
+		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
+		if err != nil {
+			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
 			return
 		}
 

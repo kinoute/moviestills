@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/config"
 	"moviestills/utils"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -15,7 +15,7 @@ import (
 // It's a good starting point for our task.
 const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
-func DVDBeaverScraper(scraper **colly.Collector) {
+func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	log.Println("Starting DVDBeaver Scraper...")
 
@@ -82,11 +82,9 @@ func DVDBeaverScraper(scraper **colly.Collector) {
 		log.Println("Found movie link for ", movieName)
 
 		// Create folder to save images in case it doesn't exist yet
-		moviePath := filepath.Join(".", "data", "dvdbeaver", movieName)
-
-		err = os.MkdirAll(moviePath, os.ModePerm)
+		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
 		if err != nil {
-			log.Println("Error creating folder for", movieName)
+			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
 			return
 		}
 

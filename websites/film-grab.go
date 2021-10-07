@@ -2,9 +2,9 @@ package websites
 
 import (
 	"log"
+	"moviestills/config"
 	"moviestills/utils"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -13,7 +13,7 @@ import (
 // This webpage stores a list of links to movie pages sorted by alphabet
 const FilmGrabURL string = "https://film-grab.com/movies-a-z/"
 
-func FilmGrabScraper(scraper **colly.Collector) {
+func FilmGrabScraper(scraper **colly.Collector, options *config.Options) {
 
 	log.Println("Starting Film-Grab Scraper...")
 
@@ -58,9 +58,9 @@ func FilmGrabScraper(scraper **colly.Collector) {
 		}
 
 		// Create folder to save images in case it doesn't exist
-		moviePath := filepath.Join(".", "data", "film-grab", movieName)
-		if err := os.MkdirAll(moviePath, os.ModePerm); err != nil {
-			log.Println("Error creating folder for", movieName)
+		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
+		if err != nil {
+			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
 			return
 		}
 
