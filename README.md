@@ -95,7 +95,7 @@ By default, every scraped page will be cached in the `cache` folder. You can cha
 
 It avoids requesting again some websites pages when there is no need to. It is a nice thing as we don't want to flood these websites with thousands of useless requests.
 
-In case you are using our Docker images to run `moviestills`, don't forget to change the volume path to the new internal cache folder, if you set up a custom cache folder.
+In case you are using our Docker image to run `moviestills`, don't forget to change the volume path to the new *internal* cache folder, if you set up a custom *internal* cache folder. But you should not bother editing this *internal* cache folder anyway, since you have volumes and can set the desired path on your host machine for the cache folder.
 
 ### Data
 
@@ -116,7 +116,7 @@ You can change the default `data` folder with the `—data-dir` CLI argument or 
 
 Again, if you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. 
 
-Do note that, when using Docker, you should not bother editing the *internal* `cache` and `data` folders paths or names as you have volumes to store and get access to these files on the host machine.
+Again, when using Docker, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
 
 ## Supported Websites
 
