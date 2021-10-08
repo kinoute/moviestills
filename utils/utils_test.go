@@ -11,8 +11,10 @@ func TestNormalize(t *testing.T) {
 	}{
 		{"Les misérables", "Les miserables"},
 		{" Kagerô-za", "Kagero-za"},
-		{" Méliès: Fairy Tales in Color", "Melies: Fairy Tales in Color"},
+		{" Méliès: Fairy Tales in Color", "Melies Fairy Tales in Color"},
 		{" Love (2D  +    3D) ", "Love (2D + 3D)"},
+		{" F/X: The Usual      Suspects  ", "FX The Usual Suspects"},
+		{"Another / Movie /      Test", "Another Movie Test"},
 		{"", ""},
 	}
 
