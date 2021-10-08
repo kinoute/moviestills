@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/alexflint/go-arg v1.4.2
 	github.com/gocolly/colly/v2 v2.1.0
-	golang.org/x/text v0.3.6
+	golang.org/x/text v0.3.7
 )
 
 require (
