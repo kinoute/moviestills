@@ -118,7 +118,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          tags: latest
+          flavor: |
+            latest=true
+          tags: |
+            type=raw,enable=true,value=latest
           images: |
             hivacruz/moviestills
             ghcr.io/${{ github.repository }}
