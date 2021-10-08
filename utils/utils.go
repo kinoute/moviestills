@@ -39,7 +39,7 @@ func Normalize(str string) (string, error) {
 	return s, err
 }
 
-// Create (nested) folder if it doesn't exist yet.
+// Create (nested) folder if it doesn't exist yet
 func CreateFolder(folder ...string) (string, error) {
 	path := filepath.Join(folder...)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
