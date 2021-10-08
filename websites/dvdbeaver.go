@@ -21,7 +21,11 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.
 	// Since everything is served on the same domain, only one domain is necessary.
-	(*scraper).AllowedDomains = []string{"www.dvdbeaver.com"}
+	(*scraper).AllowedDomains = []string{
+		"www.dvdbeaver.com",
+		"DVDBeaver.com",
+		"www.DVDBeaver.com",
+	}
 
 	// The reviews page might have been updated so
 	// we have to revisit it when restarting the scraper.
@@ -32,6 +36,11 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// so we autorize the scraper to revisit these pages.
 	movieListScraper := (*scraper).Clone()
 	movieListScraper.AllowURLRevisit = true
+
+	// DVDBeaver pages have a weird charset.
+	// Colly can deal with this automatically
+	// and handle weird accents/characters better.
+	movieListScraper.DetectCharset = true
 
 	// Scraper to fetch movie images on reviews pages.
 	// These pages are not updated after being
@@ -68,18 +77,39 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Look for movie reviews links and create folder for every
 	// movie we find to prepare the download of the snapshots.
-	// We use the CSS4 case-insensitive feature "i" to make sure
-	// our filter will find everything, no matter the case.
-	movieListScraper.OnHTML("a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
+	//
+	// We have to iterate through each p element to discard
+	// Blu-Ray reviews as we want to focus only on DVD reviews.
+	movieListScraper.OnHTML("td p", func(e *colly.HTMLElement) {
 
-		// Take care of weird characters in the movie's title
-		movieName, err := utils.Normalize(e.Text)
-		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", e.Text)
+		// We ignore BD reviews pages because we have
+		// a specific scraper, "BluBeaver", for these
+		// pages with Blu-Ray screenshots.
+		if strings.Contains(e.DOM.Text(), "BD") || strings.Contains(e.DOM.Text(), "UHD") {
+			log.Println("BD review, skipping")
 			return
 		}
 
-		log.Println("Found movie link for ", movieName)
+		// Get the DVD movie review link. Sometimes there is
+		// no link that matches our query so we stop right here.
+		//
+		// We use the CSS4 case-insensitive feature "i" to make sure
+		// our filter will find everything, no matter the case.
+		reviewLink := e.DOM.Find("a[href*='film' i]")
+		movieURL, exists := reviewLink.Attr("href")
+		if !exists {
+			log.Println("no movie review link could be found, next")
+			return
+		}
+
+		// Take care of weird characters in the movie's title
+		movieName, err := utils.Normalize(reviewLink.Text())
+		if err != nil || movieName == "" {
+			log.Println("Can't normalize Movie name for", reviewLink.Text())
+			return
+		}
+
+		log.Println("Found movie link for", movieName)
 
 		// Create folder to save images in case it doesn't exist yet
 		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
@@ -93,7 +123,9 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		ctx := colly.NewContext()
 		ctx.Put("movie_path", moviePath)
 
-		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
+		// Make sure we handle relative URLs if any
+		movieURL = e.Request.AbsoluteURL(movieURL)
+
 		log.Println("visiting movie page", movieURL)
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
@@ -102,7 +134,12 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	})
 
 	// Look for links on images that redirects to a "largest" version.
-	// most likely, these links appear on Blu-Ray reviews.
+	// It is unlikely to find some of these on some DVD reviews, but sometimes
+	// they compare DVD releases with BD releases and provide some images
+	// with native resolution (1080p).
+	//
+	// We try to avoid images with "subs" in the filename as they are
+	// most likely images with subtitles on top. We don't want that.
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found linked image", movieImageURL)
@@ -122,6 +159,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			":not([src*='subs' i])"+
 			":not([src*='daggers' i])"+
 			":not([src*='posters' i])"+
+			":not([src*='title' i])"+
 			":not([src*='menu' i])", func(e *colly.HTMLElement) {
 			movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
 
@@ -132,7 +170,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 
 			if movieImageHeight >= 275 && movieImageWidth >= 500 {
-				log.Println("Image seems correct in sizes, downloading", movieImageURL)
+				log.Println("Image resolution seems OK, downloading", movieImageURL)
 				if err := e.Request.Visit(movieImageURL); err != nil {
 					log.Println("Can't request linked image:", err)
 				}
