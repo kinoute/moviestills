@@ -50,7 +50,7 @@ changelog:
       - 'typo'
       - Merge pull request
       - Merge branch
-      - [ci skip]
+      - ci skip
 
 release:
   # Footer template for the release body.
