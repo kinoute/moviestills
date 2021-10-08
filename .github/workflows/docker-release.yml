@@ -37,8 +37,11 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
+            type=pep440,pattern={{version}}
           images: |
             hivacruz/moviestills
             ghcr.io/${{ github.repository }}
