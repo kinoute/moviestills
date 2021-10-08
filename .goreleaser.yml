@@ -20,14 +20,20 @@ builds:
     binary: moviestills
     ldflags:
       - -s -w
+    flags:
+      - -v
 
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+  -
+    format_overrides:
+      - goos: windows
+        format: zip
+    replacements:
+        darwin: Darwin
+        linux: Linux
+        windows: Windows
+        386: i386
+        amd64: x86_64
 
 checksum:
   name_template: '{{.ProjectName}}_{{.Version}}_checksums.txt'
@@ -58,23 +64,5 @@ release:
   footer: |
     ## Docker Images
 
-    `moviestills` is also available on Docker:
-
-    ### GitHub Registry
-
-    You can pull this release from the Github Container Registry:
-
-    ```bash
-    docker pull ghcr.io/kinoute/moviestills:{{ .Version }}
-    ```
-
-    ### Docker Hub
-
-    You can pull this release from the Docker Hub as well:
-
-    ```bash
-    docker pull hivacruz/moviestills:{{ .Version }}
-    ```
-
-    See how to run this app with Docker: https://github.com/kinoute/moviestills#docker-images
+    `moviestills` is also available on Docker. See https://github.com/kinoute/moviestills#docker-images
 
