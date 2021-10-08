@@ -1,0 +1,21 @@
+name: Purge Untagged GH Images
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**/README.md'
+      - '**/.github/images/**'
+  pull_request:
+    types: [closed]
+
+jobs:
+  purge-gh-images:
+    steps:
+      - name: Purge untagged images in GH packages
+      - uses: bots-house/ghcr-delete-image-action@9dee3adb4e4082ef06710f3d8aa9f7e73f89d189
+        with:
+          owner: kinoute
+          name: moviestills
+          token: ${{ secrets.PAT }}
+          untagged-older-than: 2 # days
