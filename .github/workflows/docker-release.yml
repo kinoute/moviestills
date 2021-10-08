@@ -33,6 +33,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
+          tags: |
+            type=semver,pattern={{version}}
           images: |
             hivacruz/moviestills
             ghcr.io/${{ github.repository }}
