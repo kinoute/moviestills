@@ -1,4 +1,4 @@
-name: Publish Docker images
+name: Build Docker images on Release
 
 on:
   release:
@@ -33,7 +33,6 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          tags: latest
           images: |
             hivacruz/moviestills
             ghcr.io/${{ github.repository }}
