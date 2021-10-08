@@ -6,3 +6,5 @@ data/*
 *.json
 cpuprofile
 **/.DS_Store
+
+dist/

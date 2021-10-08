@@ -1,0 +1,80 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+project_name: moviestills
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    - go mod download
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    binary: moviestills
+    ldflags:
+      - -s -w
+
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+
+checksum:
+  name_template: '{{.ProjectName}}_{{.Version}}_checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+scoop:
+  commit_author:
+    name: Yann Defretin
+    email: yann@defret.in
+  homepage: https://github.com/kinoute/moviestills
+  description: "A small CLI app to scrap high-quality movie snapshots from various websites."
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - 'typo'
+      - Merge pull request
+      - Merge branch
+      - [ci skip]
+
+release:
+  # Footer template for the release body.
+  # Defaults to empty.
+  footer: |
+    ## Docker Images
+
+    `moviestills` is also available on Docker:
+
+    ### GitHub Registry
+
+    You can pull this release from the Github Container Registry:
+
+    ```bash
+    docker pull ghcr.io/kinoute/moviestills:{{ .Version }}
+    ```
+
+    ### Docker Hub
+
+    You can pull this release from the Docker Hub as well:
+
+    ```bash
+    docker pull hivacruz/moviestills:{{ .Version }}
+    ```
+
+    See how to run this app with Docker: https://github.com/kinoute/moviestills#docker-images
+
