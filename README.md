@@ -116,7 +116,7 @@ You can change the default `data` folder with the `—data-dir` CLI argument or 
 
 Again, if you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. 
 
-Again, when using Docker, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
+When using Docker, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
 
 ## Supported Websites
 
