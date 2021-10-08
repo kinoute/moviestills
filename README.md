@@ -67,6 +67,8 @@ As you can see, you can also use environment variables instead of CLI arguments.
 
 ## Usage
 
+Output of `./moviestills --help`:
+
 ```bash
 Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug]
 
@@ -124,9 +126,9 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 
 | Website                                        | Simplified Name [<sup>1</sup>]() | Description                                                  | Movies [<sup>3</sup>]() |
 | ---------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | ---------------- |
-| [BluBeaver](http://blubeaver.ca)               | blubeaver                       | Extension of [DVDBeaver](http://dvdbeaver.com), this time dedicated to Blu-Ray reviews only. Reviews are great to check the quality of BD releases with lot of technical details. Only snapshots on "free" access are scraped. | ~3567            |
+| [BluBeaver](http://blubeaver.ca)               | blubeaver                       | Extension of [DVDBeaver](http://dvdbeaver.com), this time dedicated to Blu-Ray reviews only. Reviews are great to check the quality of BD releases with lot of technical details. Only snapshots on "free" access are scraped. | ~5069         |
 | [BlusScreens](https://www.bluscreens.net)      | bluscreens                      | Website with high resolution screen captures taken directly from different Blu-ray releases by [Blusscreens](https://twitter.com/Bluscreens). | ~452             |
-| [DVDBeaver](http://dvdbeaver.com)              | dvdbeaver                       | ***Not recommended***. [<sup>2</sup>]() A massive list of DVD/BD reviews with a lot of movie snapshots. It includes the BD reviews available in [BluBeaver](http://blubeaver.ca). It is advised to use the latter instead. | ~9975            |
+| [DVDBeaver](http://dvdbeaver.com)              | dvdbeaver                       | ***Not recommended***. [<sup>2</sup>]() A massive list of DVD reviews with a lot of movie snapshots. This task only includes the DVD reviews. BD snapshots are available in [BluBeaver](http://blubeaver.ca). It is advised to use the latter instead. | ~4098        |
 | [EvanERichards](https://www.evanerichards.com) | evanerichards                   | A short but interesting list of movies with a lot of snapshots for each. Also includes some TV Series but they are ignored by the scraper. | ~245             |
 | [Film-Grab](https://film-grab.com)             | film-grab                       | A great list of movies with a few snapshots for each. Snapshots were cherry-picked and show nice cinematography. | ~2829            |
 | [HighDefDiscNews](https://highdefdiscnews.com) | highdefdiscnews                 | A few hundreds movies featured with high-quality snapshots (png, lossless) in native resolution. | ~209             |
@@ -134,9 +136,9 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 | [ScreenMusings](https://screenmusings.org) | screenmusings | A small list of movies but with nice cherry-picked snapshots. | ~260 |
 | [StillsFrmFilms](https://stillsfrmfilms.wordpress.com) | stillsfrmfilms | A very small list of movies but, again, the snapshots were nicely chosen and depict perfectly the atmosphere of each movie. | ~63 |
 
-[<sup>1</sup>]() : The name column displays the website's name to use with `moviestills` to start the scraping job. Eg `—website blubeaver` for the BluBeaver.ca website.
+[<sup>1</sup>]() : The simplified name column displays the website's name to use with `moviestills` to start the scraping job. Eg `—website blubeaver` for the BluBeaver.ca website.
 
-[<sup>2</sup>]() : While DVDBeaver provides a lot of great movie snapshots from DVD reviews, it is harder to filter correctly the movie snapshots on the reviews pages. Expect a lot of false positives (DVD covers, banners etc).
+[<sup>2</sup>]() : While DVDBeaver provides a lot of movie snapshots from DVD reviews, it is harder to filter correctly the images on the reviews pages. Expect a lot of false positives (DVD covers, banners etc) and average quality overall.
 
 [<sup>3</sup>]() : Approximate number of movies calculated on October 5th, 2021. 
 
