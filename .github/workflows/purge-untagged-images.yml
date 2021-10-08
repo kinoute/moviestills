@@ -11,9 +11,11 @@ on:
 
 jobs:
   purge-gh-images:
+    name: Delete untagged images on GH
+    runs-on: ubuntu-latest
     steps:
       - name: Purge untagged images in GH packages
-      - uses: bots-house/ghcr-delete-image-action@9dee3adb4e4082ef06710f3d8aa9f7e73f89d189
+        uses: bots-house/ghcr-delete-image-action@9dee3adb4e4082ef06710f3d8aa9f7e73f89d189
         with:
           owner: kinoute
           name: moviestills
