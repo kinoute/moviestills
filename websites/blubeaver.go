@@ -24,12 +24,19 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		"www.blubeaver.ca",
 		"www.dvdbeaver.com",
 		"dvdbeaver.com",
+		"DVDBeaver.com",
+		"www.DVDBeaver.com",
 	}
 
 	// The index page might have been updated since last visit so
 	// we have to revisit it when restarting the scraper.
 	// It is a single page, it will not cost anything anyway.
 	(*scraper).AllowURLRevisit = true
+
+	// BluBeaver pages have a weird charset.
+	// Colly can deal with this automatically
+	// and handle weird accents/characters better.
+	(*scraper).DetectCharset = true
 
 	// Scraper to fetch movie images on reviews pages.
 	// These pages are not updated after being
@@ -48,10 +55,19 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	})
 
 	// Find links to movies reviews and isolate the movie's title.
-	// Since DVDBeaver is somewhat a custom website, some links
+	// Since BluBeaver is somewhat a custom website, some links
 	// might have different cases. We use the CSS4 "i" case-insensitive
 	// feature to make sure our filter doesn't miss anything.
-	(*scraper).OnHTML("tr b a[href*='film' i][href*='review' i]", func(e *colly.HTMLElement) {
+	(*scraper).OnHTML("li a[href*='film' i][href$='htm' i]", func(e *colly.HTMLElement) {
+
+		// Sometimes, Blubeaver made mistakes and added links to reviews
+		// on Amazon icons. Since we use the link to isolate the movie's title,
+		// we ignore these links as they don't have the movie's name included.
+		if _, iconExistsInLink := e.DOM.Find("img").Attr("src"); iconExistsInLink {
+			log.Println("Link without text, just an icon, next")
+			return
+		}
+
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Println("Found movie page link", movieURL)
 
