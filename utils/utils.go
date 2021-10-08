@@ -33,6 +33,12 @@ func Normalize(str string) (string, error) {
 		return "", err
 	}
 
+	// Get rid of forward slashes otherwise it might result in nested folders
+	s = strings.ReplaceAll(s, "/", "")
+
+	// Get rid of colons to avoid weird movie's folders
+	s = strings.ReplaceAll(s, ":", "")
+
 	// Get rid of trailing/leading spaces and also multiple spaces
 	s = strings.TrimSpace(s)
 	s = space.ReplaceAllString(s, " ")
