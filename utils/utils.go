@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"unicode"
 
@@ -33,11 +34,9 @@ func Normalize(str string) (string, error) {
 		return "", err
 	}
 
-	// Get rid of forward slashes otherwise it might result in nested folders
-	s = strings.ReplaceAll(s, "/", "")
-
-	// Get rid of colons to avoid weird movie's folders
-	s = strings.ReplaceAll(s, ":", "")
+	// Take care of disallowed characters for the creation
+	// of folders and filenames on macOS/Linux/Windows.
+	s = RemoveDisallowedChars(s)
 
 	// Get rid of trailing/leading spaces and also multiple spaces
 	s = strings.TrimSpace(s)
@@ -54,4 +53,17 @@ func CreateFolder(folder ...string) (string, error) {
 		}
 	}
 	return path, nil
+}
+
+// Remove disallowed characters from a string for
+// the creation of folders and filenames on macOS/Linux/Windows.
+// Taken from: https://github.com/iawia002/annie/blob/master/utils/utils.go
+func RemoveDisallowedChars(name string) string {
+	rep := strings.NewReplacer("\n", " ", "/", " ", "|", "-", ": ", "：", ":", "：", "'", "’")
+	name = rep.Replace(name)
+	if runtime.GOOS == "windows" {
+		rep = strings.NewReplacer("\"", " ", "?", " ", "*", " ", "\\", " ", "<", " ", ">", " ")
+		name = rep.Replace(name)
+	}
+	return name
 }
