@@ -67,3 +67,19 @@ func RemoveDisallowedChars(name string) string {
 	}
 	return name
 }
+
+// LimitLength Handle overly long strings.
+// Taken from: https://github.com/iawia002/annie/blob/master/utils/utils.go
+func LimitLength(s string, length int) string {
+	// 0 means unlimited
+	if length == 0 {
+		return s
+	}
+
+	const ELLIPSES = "..."
+	str := []rune(s)
+	if len(str) > length {
+		return string(str[:length-len(ELLIPSES)]) + ELLIPSES
+	}
+	return s
+}
