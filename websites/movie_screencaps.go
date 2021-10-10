@@ -34,7 +34,8 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 	(*scraper).AllowURLRevisit = true
 
 	// Scraper to fetch movie images.
-	// Movie pages are not updated after being published therefore we only visit once.
+	// Movie pages are not updated after being published
+	// therefore we only visit them once.
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 

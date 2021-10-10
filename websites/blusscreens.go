@@ -57,11 +57,12 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 	}
 
 	// The cinematographers page might have been updated so
-	// we have to revisit it when restarting scraper.
+	// we have to revisit it when restarting the scraper.
 	(*scraper).AllowURLRevisit = true
 
 	// Scraper to fetch movie images.
-	// Movie pages are not updated after being published therefore we only visit once.
+	// Movie pages are not updated after being published
+	// therefore we only visit them once.
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
