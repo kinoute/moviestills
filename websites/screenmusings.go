@@ -123,8 +123,7 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 
 			// Save only if we don't already downloaded it
 			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				err = r.Save(outputImgPath)
-				if err != nil {
+				if err = r.Save(outputImgPath); err != nil {
 					log.Println("Can't save image:", err)
 				}
 			}
