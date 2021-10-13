@@ -78,19 +78,23 @@ As you can see, you can also use environment variables instead of CLI arguments.
 Output of `./moviestills --help`:
 
 ```bash
-Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug]
+Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--hash]
 
 Options:
   --website WEBSITE, -w WEBSITE
                          Website to scrap movie stills on [env: WEBSITE]
   --parallel PARALLEL, -p PARALLEL
                          Limit the maximum parallelism [default: 2, env: PARALLEL]
-  --async, -a            Enable asynchronus running jobs [env: ASYNC]
+  --delay DELAY, -r DELAY
+                         Add some random delay between requests [default: 1s, env: RANDOM_DELAY]
+  --async, -a            Enable asynchronus running jobs [default: false, env: ASYNC]
   --cache-dir CACHE-DIR, -c CACHE-DIR
                          Where to cache scraped websites pages [default: cache, env: CACHE_DIR]
   --data-dir DATA-DIR, -f DATA-DIR
                          Where to store movie snapshots [default: data, env: DATA_DIR]
-  --debug, -d            Enable Colly Debugger, our scraper [env: DEBUG]
+  --debug, -d            Set Log Level to Debug to see everything [default: false, env: DEBUG]
+  --no-colors            Disable colors from output [default: false, env: NO_COLORS]
+  --hash                 Hash image filenames with MD5 [default: false, env: HASH]
   --help, -h             display this help and exit
   --version              display version and exit
 ```
@@ -124,9 +128,11 @@ data # where to store movie snapshots
 
 You can change the default `data` folder with the `—data-dir` CLI argument or the `DATA_DIR` environment variable.
 
-Again, if you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. 
+If you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. Again, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
 
-When using Docker, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
+#### Hash filenames
+
+To get some consistency, you can use the MD5 hash function to normalize image filenames. All images will then have 32 hexadecimal digits as filenames. To enable the *hashing*, use the `—hash` CLI argument or the `HASH=true` environment variable.
 
 ## Supported Websites
 
@@ -146,7 +152,7 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 
 [<sup>1</sup>]() : The simplified name column displays the website's name to use with `moviestills` to start the scraping job. Eg `—website blubeaver` for the BluBeaver.ca website.
 
-[<sup>2</sup>]() : While DVDBeaver provides a lot of movie snapshots from DVD reviews, it is harder to filter correctly the images on the reviews pages. Expect a lot of false positives (DVD covers, banners etc) and average quality overall.
+[<sup>2</sup>]() : While DVDBeaver provides a lot of movie snapshots from great DVD reviews, it is harder to filter correctly the images on the reviews pages. Expect a lot of false positives (DVD covers, banners etc) and average quality overall.
 
 [<sup>3</sup>]() : Approximate number of movies calculated on October 5th, 2021. 
 
