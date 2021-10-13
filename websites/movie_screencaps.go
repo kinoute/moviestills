@@ -14,6 +14,7 @@ import (
 // Page that lists all movies available, sorted alphabetically
 const ScreenCapsURL string = "https://movie-screencaps.com/movie-directory/"
 
+// Main function that handles all the scraping logic for this website
 func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domains for the main scrapper.

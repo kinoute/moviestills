@@ -13,6 +13,7 @@ import (
 // This webpage stores a list of links to movie pages sorted by alphabet
 const FilmGrabURL string = "https://film-grab.com/movies-a-z/"
 
+// Main function that handles all the scraping logic for this website
 func FilmGrabScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

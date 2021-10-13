@@ -15,6 +15,7 @@ import (
 // It's a good starting point for our task.
 const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
+// Main function that handles all the scraping logic for this website
 func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

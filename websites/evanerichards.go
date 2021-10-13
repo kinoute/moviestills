@@ -13,6 +13,7 @@ import (
 // This webpage stores a list of links to movie, TV movies, Series...
 const EvanERichardsURL string = "https://www.evanerichards.com/index"
 
+// Main function that handles all the scraping logic for this website
 func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

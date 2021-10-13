@@ -13,6 +13,7 @@ import (
 // Page that lists all movies available, sorted alphabetically
 const ScreenMusingsURL string = "https://screenmusings.org/movie/"
 
+// Main function that handles all the scraping logic for this website
 func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domains for the main scrapper.

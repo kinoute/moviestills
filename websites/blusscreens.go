@@ -32,6 +32,7 @@ const MinimumSize int = 1024 * 20
 // 	Path  string
 // }
 
+// Main function that handles all the scraping logic for this website
 func BlusScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Save movie infos as JSON
@@ -135,7 +136,7 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 		})
 
 	// Some old pages of blusscreens have a different layout.
-	// We need a special funtion to handle this.
+	// We need a special function to handle this.
 	// eg: https://www.bluscreens.net/oss-117-rio-ne-reacutepond-plus.html
 	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=postimage]", func(e *colly.HTMLElement) {
 		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))

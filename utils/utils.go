@@ -23,6 +23,7 @@ import (
 // or weird parameters that makes filenames weird.
 var removeParams = regexp.MustCompile(`(\?.*)$`)
 
+// Use the RegExp compiled above to remove URL Params
 func RemoveURLParams(url string) string {
 	return removeParams.ReplaceAllString(url, "")
 }
@@ -32,6 +33,9 @@ func RemoveURLParams(url string) string {
 var normalizer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 var space = regexp.MustCompile(`\s+`)
 
+// Remove anything weird from a string. In our
+// case, movie titles. That way, creating folders
+// or filenames won't be a problem.
 func Normalize(str string) (string, error) {
 	// Get rid of accents
 	s, _, err := transform.String(normalizer, str)

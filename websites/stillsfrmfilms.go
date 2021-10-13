@@ -13,6 +13,7 @@ import (
 // This webpage stores a list of links to movies
 const StillsFrmFilmsURL string = "https://stillsfrmfilms.wordpress.com/movies-a-z/"
 
+// Main function that handles all the scraping logic for this website
 func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.
