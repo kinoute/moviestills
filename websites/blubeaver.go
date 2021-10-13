@@ -3,7 +3,7 @@ package websites
 import (
 	"moviestills/config"
 	"moviestills/utils"
-	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
@@ -14,8 +14,6 @@ import (
 const BluBeaverURL string = "http://www.dvdbeaver.com/blu-ray.htm"
 
 func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
-
-	log.Info.Println("Started BluBeaver Scraper...")
 
 	// Change allowed domain for the main scraper.
 	// Since everything is served on the same domain,
@@ -46,7 +44,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Error.Println(r.Request.URL, "\t", r.StatusCode, "\nError:", log.Red(err))
+		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
 	})
 
 	// Before making a request print "Visiting ..."
@@ -85,7 +83,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			return
 		}
 
-		log.Success.Println("Found movie page for:", log.Blue(movieName))
+		log.Info.Println("Found movie page for:", log.White(movieName))
 
 		// Pass the movie's name and path to the next request context
 		// in order to save the images in correct folder.
@@ -93,8 +91,9 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		ctx.Put("movie_name", movieName)
 		ctx.Put("movie_path", moviePath)
 
+		// Try to visit movie page
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Error.Println("Can't request movie page", log.White(movieURL), ":", log.Red(err))
+			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
 		// In case we enabled asynchronous jobs
@@ -106,32 +105,36 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		log.Debug.Println("visiting movie page", log.White(r.URL.String()))
 	})
 
-	// It's but sometimes on BD reviews there are no large versions.
+	// It's rare but sometimes on BD reviews there are no large versions.
 	// Therefore we download the images as shown on the webpage and
 	// be sure we avoid some weird ones (subtitles, DVD covers etc).
-	// movieScraper.OnHTML(
-	// 	"img:not([src*='banner' i])"+
-	// 		":not([src*='bitrate' i])"+
-	// 		":not([src$='gif' i])"+
-	// 		":not([src*='subs' i])"+
-	// 		":not([src*='daggers' i])"+
-	// 		":not([src*='posters' i])"+
-	// 		":not([src*='title' i])"+
-	// 		":not([src*='menu' i])", func(e *colly.HTMLElement) {
-	// 		movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
+	movieScraper.OnHTML(
+		":not(a) >"+
+			"img:not([src*='banner' i])"+
+			":not([src*='rating' i])"+
+			":not([src*='package' i])"+
+			":not([src*='bitrate' i])"+
+			":not([src*='bitgraph' i])"+
+			":not([src$='gif' i])"+
+			":not([src*='sub' i])"+
+			":not([src*='daggers' i])"+
+			":not([src*='poster' i])"+
+			":not([src*='title' i])"+
+			":not([src*='menu' i])", func(e *colly.HTMLElement) {
+			movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
 
-	// 		// Filter low resolutions images to avoid false positives.
-	// 		// if the images are too small, we won't be able to use them
-	// 		// anyway so let's skip them.
-	// 		movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
-	// 		movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
+			// Filter low resolutions images to avoid false positives.
+			// if the images are too small, we won't be able to use them
+			// anyway so let's skip them.
+			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
+			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 
-	// 		if movieImageHeight >= 275 && movieImageWidth >= 500 {
-	// 			if err := e.Request.Visit(movieImageURL); err != nil {
-	// 				log.Error.Println("Can't request linked image", log.White(movieImageURL), ":", log.Red(err))
-	// 			}
-	// 		}
-	// 	})
+			if movieImageHeight >= 265 && movieImageHeight <= 700 && movieImageWidth >= 500 {
+				if err := e.Request.Visit(movieImageURL); err != nil {
+					log.Error.Println("Can't get inline image", log.White(movieImageURL), ":", log.Red(err))
+				}
+			}
+		})
 
 	// Look for links on images that redirects to a "largest" version.
 	// These links appear on Blu-Ray reviews almost exclusively and
@@ -141,38 +144,44 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// most likely images with subtitles on top. We don't want that.
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Debug.Println("Found linked image", log.White(movieImageURL))
+		log.Debug.Println("Found large image", log.White(movieImageURL))
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Error.Println("Can't request linked image", log.White(movieImageURL), ":", log.Red(err))
+			log.Error.Println("Can't get large image", log.White(movieImageURL), ":", log.Red(err))
+
+			// Sometimes, the high quality version of an image
+			// is not available anymore ("Not Found").
+			//
+			// In this case, we can try to save the image
+			// shown on the webpage that has a lower resolution.
+			if lowImageURL, imgExists := e.DOM.Find("img").Attr("src"); imgExists && err.Error() == "Not Found" {
+				log.Info.Println("Trying to save low quality image instead", log.White(lowImageURL))
+				if err := e.Request.Visit(e.Request.AbsoluteURL(lowImageURL)); err != nil {
+					log.Error.Println("Can't get low resolution image", log.White(lowImageURL), ":", log.Red(err))
+				}
+			}
 		}
 	})
 
 	// Check if what we just visited is an image and
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
-		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
-			outputDir := r.Ctx.Get("movie_path")
-			outputImgPath := outputDir + "/" + r.FileName()
-
-			// Don't save again it we already downloaded it
-			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				if err = r.Save(outputImgPath); err != nil {
-					log.Error.Println("Can't save image", log.White(r.FileName()), ":", log.Red(err))
-				}
-			}
+		// Ignore anything that is not an image
+		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
 			return
 		}
-	})
 
-	movieScraper.OnScraped(func(r *colly.Response) {
-		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
-			log.Success.Println(
-				"Got image for",
-				log.Blue(r.Request.Ctx.Get("movie_name")),
-				log.White(utils.LimitLength(r.FileName(), 50)))
+		// Try to save movie image
+		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
+			r.Ctx.Get("movie_name"),
+			r.FileName(),
+			r.Body,
+			options.Hash,
+		); err != nil {
+			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
 		}
+
 	})
 
 	if err := (*scraper).Visit(BluBeaverURL); err != nil {
