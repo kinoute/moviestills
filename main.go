@@ -2,6 +2,7 @@ package main
 
 import (
 	"moviestills/config"
+	"moviestills/debug"
 	"moviestills/utils"
 	"moviestills/websites"
 	"os"
@@ -10,26 +11,26 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/debug"
 	"github.com/gocolly/colly/v2/extensions"
 	log "github.com/pterm/pterm"
 )
 
 func main() {
 
+	// Start by cleaning the Terminal Screen
 	clearScreen()
 
 	// Implemented scrapers as today
 	sites := map[string]func(**colly.Collector, *config.Options){
-		"blubeaver": websites.BluBeaverScraper,
-		// "blusscreens":      websites.BlusScraper,
-		// "dvdbeaver":        websites.DVDBeaverScraper,
-		// "evanerichards":    websites.EvanERichardsScraper,
-		// "film-grab":        websites.FilmGrabScraper,
-		// "highdefdiscnews":  websites.HighDefDiscNewsScraper,
-		// "movie-screencaps": websites.ScreenCapsScraper,
-		// "screenmusings":    websites.ScreenMusingsScraper,
-		// "stillsfrmfilms":   websites.StillsFrmFilmsScraper,
+		"blubeaver":        websites.BluBeaverScraper,
+		"blusscreens":      websites.BlusScraper,
+		"dvdbeaver":        websites.DVDBeaverScraper,
+		"evanerichards":    websites.EvanERichardsScraper,
+		"film-grab":        websites.FilmGrabScraper,
+		"highdefdiscnews":  websites.HighDefDiscNewsScraper,
+		"movie-screencaps": websites.ScreenCapsScraper,
+		"screenmusings":    websites.ScreenMusingsScraper,
+		"stillsfrmfilms":   websites.StillsFrmFilmsScraper,
 	}
 
 	// Handle arguments passed through the CLI or environment variables
@@ -37,6 +38,12 @@ func main() {
 	var options config.Options
 	arg.MustParse(&options)
 
+	// Disable colors for output
+	if options.NoColors {
+		log.DisableColor()
+	}
+
+	// Interface of the app
 	log.DefaultHeader.Println("Movie Stills", config.VERSION)
 
 	log.DefaultSection.Println("Configuration")
@@ -47,6 +54,12 @@ func main() {
 		log.Error.Println("A website must be set through arguments.")
 		os.Exit(1)
 	}
+
+	// We override the default prefix label for "info" messages to
+	// align it perfectly on the Terminal with other labels. Otherwise,
+	// since "INFO" is shorter than the other labels, the width
+	// of the different labels is not the same.
+	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
 
 	// Verify if we have a scrapper for the given website.
 	// If we do, "site_func" will now contain a function listed in
@@ -92,9 +105,10 @@ func main() {
 		scraper.Async = true
 	}
 
-	// Enable Colly Debugging if asked through the CLI
+	// Enable Debugging level if asked through the CLI
 	if options.Debug {
-		scraper.SetDebugger(&debug.LogDebugger{})
+		log.EnableDebugMessages()
+		scraper.SetDebugger(&debug.PTermDebugger{})
 	}
 
 	// Use random user agent and referer to avoid getting banned
@@ -105,11 +119,13 @@ func main() {
 	if err := scraper.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: options.Parallel,
+		RandomDelay: 1 * options.RandomDelay,
 	}); err != nil {
 		log.Warning.Println("Can't change scraper limit options:", log.Red(err))
 	}
 
 	log.DefaultSection.Println("Scraping")
+	log.Info.Println("Starting", options.Website, "Scraper")
 
 	// Here we call the website module depending on the website provided
 	// in the CLI by the user.
@@ -117,9 +133,11 @@ func main() {
 	// All available scrapers are stored in the "websites" folder.
 	site_func(&scraper, &options)
 
+	log.Info.Println("Finished Scraping", options.Website, "!")
+
 }
 
-// Clear Terminal Screen before startnig the app
+// Clear Terminal Screen
 func clearScreen() {
 	print("\033[H\033[2J")
 }
@@ -128,7 +146,7 @@ func clearScreen() {
 func printConfiguration(options *config.Options) {
 
 	// Get fields and its values from the config struct
-	values := reflect.ValueOf((*options))
+	values := reflect.ValueOf(*options)
 	fields := values.Type()
 
 	// Create bullet lists with configuration
@@ -146,8 +164,7 @@ func printConfiguration(options *config.Options) {
 	}
 
 	// Print the configuration as a bullet list
-	err := log.DefaultBulletList.WithItems(configuration).Render()
-	if err != nil {
+	if err := log.DefaultBulletList.WithItems(configuration).Render(); err != nil {
 		log.Error.Println("Could not print configuration", log.Red(err))
 	}
 }
