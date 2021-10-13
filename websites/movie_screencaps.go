@@ -1,12 +1,12 @@
 package websites
 
 import (
-	"log"
 	"moviestills/config"
 	"moviestills/utils"
-	"os"
 	"strconv"
 	"strings"
+
+	log "github.com/pterm/pterm"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -15,8 +15,6 @@ import (
 const ScreenCapsURL string = "https://movie-screencaps.com/movie-directory/"
 
 func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
-
-	log.Println("Starting Movie-Screencaps Scraper...")
 
 	// Change allowed domains for the main scrapper.
 	// Images are stored on wordpress apparently.
@@ -41,12 +39,12 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Println(r.Request.URL, "\t", r.StatusCode, "\nError:", err)
+		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
 	})
 
 	// Before making a request print "Visiting ..."
 	(*scraper).OnRequest(func(r *colly.Request) {
-		log.Println("visiting index page", r.URL.String())
+		log.Debug.Println("visiting index page", log.White(r.URL.String()))
 	})
 
 	// Isolate every movie listed, keep its title and
@@ -56,21 +54,26 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 	// Then visit movie page where images are listed/displayed.
 	(*scraper).OnHTML("div.tagindex ul.links li a[href*=movie]", func(e *colly.HTMLElement) {
 
+		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Debug.Println("Found movie page link", log.White(movieURL))
+
 		// Take care of weird accents and spaces
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", e.Text)
+			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), ":", log.Red(err))
 			return
 		}
 
-		log.Println("Found movie link for", movieName)
+		log.Debug.Println("Found movie link for", log.White(movieName))
 
 		// Create folder to save images in case it doesn't exist
 		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
 		if err != nil {
-			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
+			log.Error.Println("Can't create movie folder for:", log.White(movieName), log.Red(err))
 			return
 		}
+
+		log.Info.Println("Found movie page for:", log.White(movieName))
 
 		// Pass the movie's name and path to the next request context
 		// in order to save the images in correct folder.
@@ -78,11 +81,8 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 		ctx.Put("movie_name", movieName)
 		ctx.Put("movie_path", moviePath)
 
-		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("visiting movie page", movieURL)
-
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page:", err)
+			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
 		// In case we enabled asynchronous jobs
@@ -100,15 +100,18 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 		// Otherwise it will result in an infinite loop.
 		if !strings.Contains(actualPageURL, "/page") {
 
+			movieName := e.Request.Ctx.Get("movie_name")
+
 			// Get the total number of pages from the select menu and the last option
 			numOfPages, _ := strconv.Atoi(e.Attr("value"))
-			log.Println("number of pages for", e.Request.Ctx.Get("movie_name"), "is", e.Attr("value"))
+			log.Info.Println("number of pages for", log.White(movieName), "is", log.White(e.Attr("value")))
 
 			// Visit every paginated page to get a few snapshots every time
 			for num := 2; num <= numOfPages; num++ {
-				log.Println("visiting paginated page", strconv.Itoa(num), "for", e.Request.Ctx.Get("movie_name"))
-				if err := e.Request.Visit(actualPageURL + "page/" + strconv.Itoa(num)); err != nil {
-					log.Println("Can't visit paginated page:", err)
+				log.Info.Println("visiting paginated page", log.White(strconv.Itoa(num)), "for", log.White(movieName))
+				paginatedPageURL := actualPageURL + "page/" + strconv.Itoa(num)
+				if err := e.Request.Visit(paginatedPageURL); err != nil {
+					log.Error.Println("Can't visit paginated page", log.White(paginatedPageURL), ":", log.Red(err))
 				}
 			}
 		}
@@ -130,9 +133,9 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 		// We might need to remove some suffixes.
 		movieImageURL = utils.RemoveURLParams(movieImageURL)
 
-		log.Println("Found linked image", movieImageURL)
+		log.Debug.Println("Found linked image", log.White(movieImageURL))
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image:", err)
+			log.Error.Println("Can't request linked image", log.White(movieImageURL), log.Red(err))
 		}
 	})
 
@@ -140,25 +143,25 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 
-		// If we're dealing with an image, save it in the correct folder
-		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
-
-			outputDir := r.Ctx.Get("movie_path")
-			outputImgPath := outputDir + "/" + r.FileName()
-
-			// Save only if we don't already downloaded it
-			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image:", err)
-				}
-			}
-
+		// Ignore anything that is not an image
+		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
 			return
 		}
+
+		// Try to save movie image
+		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
+			r.Ctx.Get("movie_name"),
+			r.FileName(),
+			r.Body,
+			options.Hash,
+		); err != nil {
+			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
+		}
+
 	})
 
 	if err := (*scraper).Visit(ScreenCapsURL); err != nil {
-		log.Println("Can't visit index page:", err)
+		log.Error.Println("Can't visit index page", log.White(ScreenCapsURL), ":", log.Red(err))
 	}
 
 	// In case we enabled asynchronous jobs

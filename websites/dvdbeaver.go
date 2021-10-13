@@ -1,12 +1,12 @@
 package websites
 
 import (
-	"log"
 	"moviestills/config"
 	"moviestills/utils"
-	"os"
 	"strconv"
 	"strings"
+
+	log "github.com/pterm/pterm"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -16,8 +16,6 @@ import (
 const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
 func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
-
-	log.Println("Starting DVDBeaver Scraper...")
 
 	// Change allowed domain for the main scraper.
 	// Since everything is served on the same domain, only one domain is necessary.
@@ -50,21 +48,21 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Println(r.Request.URL, "\t", r.StatusCode, "\nError:", err)
+		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
 	})
 
 	// Before making a request print "Visiting ..."
 	(*scraper).OnRequest(func(r *colly.Request) {
-		log.Println("visiting reviews page", r.URL.String())
+		log.Debug.Println("visiting index page", log.White(r.URL.String()))
 	})
 
 	// Find links to movies list by alphabet
 	(*scraper).OnHTML("a[href*='listing' i]", func(e *colly.HTMLElement) {
 		movieListURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("Found movie list page link", movieListURL)
+		log.Debug.Println("Found movie list page link", log.White(movieListURL))
 
 		if err := movieListScraper.Visit(movieListURL); err != nil {
-			log.Println("Can't visit movie list page:", err)
+			log.Error.Println("Can't visit movie list page", log.White(movieListURL), log.Red(err))
 		}
 
 		movieListScraper.Wait()
@@ -72,7 +70,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Before making a request print "Visiting ..."
 	movieListScraper.OnRequest(func(r *colly.Request) {
-		log.Println("visiting movie list page", r.URL.String())
+		log.Debug.Println("visiting movie list page", log.White(r.URL.String()))
 	})
 
 	// Look for movie reviews links and create folder for every
@@ -86,7 +84,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		// a specific scraper, "BluBeaver", for these
 		// pages with Blu-Ray screenshots.
 		if strings.Contains(e.DOM.Text(), "BD") || strings.Contains(e.DOM.Text(), "UHD") {
-			log.Println("BD review, skipping")
+			log.Debug.Println("BD review, skipping")
 			return
 		}
 
@@ -98,23 +96,23 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		reviewLink := e.DOM.Find("a[href*='film' i]")
 		movieURL, exists := reviewLink.Attr("href")
 		if !exists {
-			log.Println("no movie review link could be found, next")
+			log.Debug.Println("no movie review link could be found, next")
 			return
 		}
 
 		// Take care of weird characters in the movie's title
 		movieName, err := utils.Normalize(reviewLink.Text())
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", reviewLink.Text())
+			log.Error.Println("Can't normalize Movie name for", log.White(reviewLink.Text()))
 			return
 		}
 
-		log.Println("Found movie link for", movieName)
+		log.Debug.Println("Found movie link for", log.White(movieName))
 
 		// Create folder to save images in case it doesn't exist yet
 		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
 		if err != nil {
-			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
+			log.Error.Println("Can't create movie folder for:", log.White(movieName), log.Red(err))
 			return
 		}
 
@@ -122,14 +120,14 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		// in order to save the images in the correct folder.
 		ctx := colly.NewContext()
 		ctx.Put("movie_path", moviePath)
+		ctx.Put("movie_name", movieName)
 
 		// Make sure we handle relative URLs if any
 		movieURL = e.Request.AbsoluteURL(movieURL)
-
-		log.Println("visiting movie page", movieURL)
+		log.Info.Println("Found movie page for:", log.White(movieName))
 
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page:", err)
+			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 	})
 
@@ -142,10 +140,10 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// most likely images with subtitles on top. We don't want that.
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("Found linked image", movieImageURL)
+		log.Debug.Println("Found large image", log.White(movieImageURL))
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image:", err)
+			log.Error.Println("Can't get large image", log.White(movieImageURL), ":", log.Red(err))
 		}
 	})
 
@@ -154,11 +152,14 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// be sure we avoid some weird ones (subtitles, DVD covers etc).
 	movieScraper.OnHTML(
 		"img:not([src*='banner' i])"+
+			":not([src*='rating' i])"+
+			":not([src*='package' i])"+
 			":not([src*='bitrate' i])"+
+			":not([src*='bitgraph' i])"+
 			":not([src$='gif' i])"+
-			":not([src*='subs' i])"+
+			":not([src*='sub' i])"+
 			":not([src*='daggers' i])"+
-			":not([src*='posters' i])"+
+			":not([src*='poster' i])"+
 			":not([src*='title' i])"+
 			":not([src*='menu' i])", func(e *colly.HTMLElement) {
 			movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
@@ -169,10 +170,9 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 
-			if movieImageHeight >= 275 && movieImageWidth >= 500 {
-				log.Println("Image resolution seems OK, downloading", movieImageURL)
+			if movieImageHeight >= 265 && movieImageHeight <= 700 && movieImageWidth >= 500 {
 				if err := e.Request.Visit(movieImageURL); err != nil {
-					log.Println("Can't request linked image:", err)
+					log.Error.Println("Can't request inline image", log.White(movieImageURL), log.Red(err))
 				}
 			}
 		})
@@ -180,24 +180,25 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// Check if what we just visited is an image and
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
-		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
 
-			outputDir := r.Ctx.Get("movie_path")
-			outputImgPath := outputDir + "/" + r.FileName()
-
-			// Don't save again it we already downloaded it
-			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image:", err)
-				}
-			}
-
+		// Ignore anything that is not an image
+		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
 			return
+		}
+
+		// Try to save movie image
+		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
+			r.Ctx.Get("movie_name"),
+			r.FileName(),
+			r.Body,
+			options.Hash,
+		); err != nil {
+			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
 		}
 	})
 
 	if err := (*scraper).Visit(BeaverURL); err != nil {
-		log.Println("Can't visit index page:", err)
+		log.Error.Println("Can't visit index page:", log.Red(err))
 	}
 
 	// In case we enabled asynchronous jobs

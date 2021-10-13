@@ -1,11 +1,11 @@
 package websites
 
 import (
-	"log"
 	"moviestills/config"
 	"moviestills/utils"
-	"os"
 	"strings"
+
+	log "github.com/pterm/pterm"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -14,8 +14,6 @@ import (
 const ScreenMusingsURL string = "https://screenmusings.org/movie/"
 
 func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
-
-	log.Println("Starting ScreenMusings Scraper...")
 
 	// Change allowed domains for the main scrapper.
 	// Images are stored on the same domain apparently.
@@ -35,12 +33,12 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Println(r.Request.URL, "\t", r.StatusCode, "\nError:", err)
+		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
 	})
 
 	// Before making a request print "Visiting ..."
 	(*scraper).OnRequest(func(r *colly.Request) {
-		log.Println("visiting index page", r.URL.String())
+		log.Debug.Println("visiting index page", log.White(r.URL.String()))
 	})
 
 	// Isolate every movie listed, keep its title and year.
@@ -50,21 +48,24 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 	// this website has both DVD and Blu-Rays reviews, let's take care of it.
 	(*scraper).OnHTML("nav#movies ul li a[href*=dvd], nav#movies ul li a[href*=blu]", func(e *colly.HTMLElement) {
 
+		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Debug.Println("Found movie page link", log.White(movieURL))
+
 		// Take care of weird accents and spaces
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil || movieName == "" {
-			log.Println("Can't normalize Movie name for", e.Text)
+			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), ":", log.Red(err))
 			return
 		}
-
-		log.Println("Found movie link for", movieName)
 
 		// Create folder to save images in case it doesn't exist
 		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
 		if err != nil {
-			log.Printf("Error creating folder for movie %v on %v: %v", movieName, options.Website, err)
+			log.Error.Println("Can't create movie folder for:", log.White(movieName), log.Red(err))
 			return
 		}
+
+		log.Info.Println("Found movie page for:", log.White(movieName))
 
 		// Pass the movie's name and path to the next request context
 		// in order to save the images in correct folder.
@@ -72,12 +73,8 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 		ctx.Put("movie_name", movieName)
 		ctx.Put("movie_path", moviePath)
 
-		// Go to the movie page
-		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Println("visiting movie page", movieURL)
-
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Println("Can't visit movie page:", err)
+			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
 		// In case we enabled asynchronous jobs
@@ -89,9 +86,9 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 	// single page. Therefore, we don't have to deal with pagination.
 	movieScraper.OnHTML("ul#gallery-nav-top li:nth-last-child(2) a[href*=most]", func(e *colly.HTMLElement) {
 		mostViewedImages := e.Attr("href")
-		log.Println("get most viewed stills link for", e.Request.Ctx.Get("movie_name"))
+		log.Debug.Println("get most viewed stills link for", log.White(e.Request.Ctx.Get("movie_name")))
 		if err := e.Request.Visit(mostViewedImages); err != nil {
-			log.Println("Can't request most viewed stills page:", err)
+			log.Error.Println("Can't request most viewed stills page:", log.Red(err))
 		}
 	})
 
@@ -105,9 +102,9 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 		// Replace "thumbnails" by "images" to get the full image URL
 		movieImageURL = strings.Replace(movieImageURL, "thumbnails", "images", 1)
 
-		log.Println("Found linked image", movieImageURL)
+		log.Debug.Println("Found linked image", log.White(movieImageURL))
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Println("Can't request linked image:", err)
+			log.Error.Println("Can't request linked image", log.White(movieImageURL), log.Red(err))
 		}
 	})
 
@@ -115,25 +112,25 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {
 
-		// If we're dealing with an image, save it in the correct folder
-		if strings.Contains(r.Headers.Get("Content-Type"), "image") {
-
-			outputDir := r.Ctx.Get("movie_path")
-			outputImgPath := outputDir + "/" + r.FileName()
-
-			// Save only if we don't already downloaded it
-			if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-				if err = r.Save(outputImgPath); err != nil {
-					log.Println("Can't save image:", err)
-				}
-			}
-
+		// Ignore anything that is not an image
+		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
 			return
 		}
+
+		// Try to save movie image
+		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
+			r.Ctx.Get("movie_name"),
+			r.FileName(),
+			r.Body,
+			options.Hash,
+		); err != nil {
+			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
+		}
+
 	})
 
 	if err := (*scraper).Visit(ScreenMusingsURL); err != nil {
-		log.Println("Can't visit index page:", err)
+		log.Error.Println("Can't visit index page", log.White(ScreenMusingsURL), ":", log.Red(err))
 	}
 
 	// In case we enabled asynchronous jobs
