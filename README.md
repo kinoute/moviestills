@@ -50,11 +50,12 @@ The "latest" image is built from the master branch on every push. You can see al
 ```bash
 docker run \
     --name moviestills \
-    --volume "$PWD/cache:/cache" \ # cache scraped websites pages
-    --volume "$PWD/data:/data" \ # store movie snapshots
+    --pull=always \
+    --volume "${PWD}/cache:/app/cache" \
+    --volume "${PWD}/data:/app/data" \
     --rm ghcr.io/kinoute/moviestills:latest \
-    --website movie-screencaps \ # scrap a specific website
-    --async # enable asynchronous jobs
+    --website movie-screencaps \
+    --async
 ```
 
 #### Docker Hub
@@ -64,21 +65,24 @@ You can can see all the image tags available on the Docker Hub [here](https://hu
 ```bash
 docker run \
     --name moviestills \
-    --volume "$PWD/cache:/cache" \ # cached scraped websites
-    --volume "$PWD/data:/data" \ # store movie snapshots
+    --pull=always \
+    --volume "${PWD}/cache:/app/cache" \
+    --volume "${PWD}/data:/app/data" \
     --env WEBSITE=blubeaver \
     --env ASYNC=true \
     --rm hivacruz/moviestills:latest
 ```
 
-As you can see, you can also use environment variables instead of CLI arguments.
+As you can see, you can also use environment variables instead of CLI arguments. 
+
+By default, the `docker run` command above will always `pull` before running to get the latest image changes for the specified tag. If you don't like this behavior, remove the `--pull=always` flag from the command.
 
 ## Usage
 
 Output of `./moviestills --help`:
 
 ```bash
-Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--hash]
+Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
 
 Options:
   --website WEBSITE, -w WEBSITE
@@ -94,7 +98,8 @@ Options:
                          Where to store movie snapshots [default: data, env: DATA_DIR]
   --debug, -d            Set Log Level to Debug to see everything [default: false, env: DEBUG]
   --no-colors            Disable colors from output [default: false, env: NO_COLORS]
-  --hash                 Hash image filenames with MD5 [default: false, env: HASH]
+  --no-style             Disable styling and colors entirely from output [default: false, env: NO_STYLE]
+  --hash                 Hash image filenames with md5 [default: false, env: HASH]
   --help, -h             display this help and exit
   --version              display version and exit
 ```
@@ -107,9 +112,9 @@ For boolean arguments such as `--async` or `--debug`, their equivalent as enviro
 
 By default, every scraped page will be cached in the `cache` folder. You can change the name or path to the folder  through the options as listed above, with `—cache-dir` or the `CACHE_DIR` environment variable. This is an important folder as it stores everything that was scraped.
 
-It avoids requesting again some websites pages when there is no need to. It is a nice thing as we don't want to flood these websites with thousands of useless requests.
+It avoids requesting again some websites pages when there is no need to. It is a nice thing as we don't want to flood these websites with thousands of useless requests. It is also handy to continue an early-stopped scraping job.
 
-In case you are using our Docker image to run `moviestills`, don't forget to change the volume path to the new *internal* cache folder, if you set up a custom *internal* cache folder. But you should not bother editing this *internal* cache folder anyway, since you have volumes and can set the desired path on your host machine for the cache folder.
+In case you are using our Docker image to run `moviestills`, don't forget to change the volume path to the new *internal* `cache` folder, if you set up a custom *internal* `cache` folder. But you should not bother editing this *internal* `cache` folder anyway, since you have volumes and can set the desired path on your host machine for the cache folder.
 
 ### Data
 
@@ -128,11 +133,11 @@ data # where to store movie snapshots
 
 You can change the default `data` folder with the `—data-dir` CLI argument or the `DATA_DIR` environment variable.
 
-If you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* data folder. Again, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
+If you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* `data` folder. Again, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
 
 #### Hash filenames
 
-To get some consistency, you can use the MD5 hash function to normalize image filenames. All images will then have 32 hexadecimal digits as filenames. To enable the *hashing*, use the `—hash` CLI argument or the `HASH=true` environment variable.
+To get some consistency, you can use the MD5 hash function to normalize image filenames. All images will then use 32 hexadecimal digits as filenames. To enable the *hashing*, use the `—hash` CLI argument or the `HASH=true` environment variable.
 
 ## Supported Websites
 
@@ -196,7 +201,7 @@ If you don't have Go installed, you can build a Docker Image to start developing
 ```bash
 # build development image
 docker --tag moviestills-dev . \
-	--target base
+    --target base
 ```
 
 Then start and go inside the container:
@@ -205,20 +210,37 @@ Then start and go inside the container:
 # start the development container
 # and go inside it
 docker run \
-	--name moviestills-dev \
-	--volume "$PWD:/app" \
-	--interactive \
-	--tty \
-	--rm moviestills-dev
+    --name moviestills-dev \
+    --volume "$PWD:/app" \
+    --interactive \
+    --tty \
+    --rm moviestills-dev
 ```
 
 A volume is created to report any change you make to the code inside the container.
 
 To run your code, you can use `go run .` inside the container, test it, build it etc. Do note that these commands might be slow at first.
 
+#### Build final image
+
+You can also build locally the final image of the app to test it. To do that, run in the repository:
+
+```bash
+# build final image with binary
+docker build -t moviestills .
+
+# test it
+docker run \
+    --volume "${PWD}/cache:/app/cache" \
+    --volume "${PWD}/data:/app/data" \
+    --rm moviestills:latest \
+    --website film-grab \
+    --debug 
+```
+
 ## Contribute
 
-This is my first project in Golang. Therefore, pull requests, suggestions or bug reports are appreciated. A major refactoring is not excluded since I'm still learning the language.
+This is my first public project in Golang. Therefore, pull requests, suggestions or bug reports are appreciated. A major refactoring is not excluded since I'm still learning the language.
 
 A lot of things included here might look *overkill* for such a small app (linting, packages etc) but I thought setting a complete workflow would be interesting. Don't hesitate to make it better!
 
@@ -244,7 +266,6 @@ I couldn't find any support page for the other websites but you can support some
 
 Just be gentle while scraping: some are hosting the images on their own servers!
 
-## 	Credits
+##  Credits
 
 * Created by [Yann Defretin](https://github.com/kinoute).
-
