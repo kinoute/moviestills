@@ -70,8 +70,8 @@ func main() {
 	// If we do, "site_func" will now contain a function listed in
 	// the sites map that matches a module for this specific
 	// website stored in the "websites" folder.
-	site_func, scraper_exists := sites[strings.ToLower(options.Website)]
-	if !scraper_exists {
+	siteFunc, scraperExists := sites[strings.ToLower(options.Website)]
+	if !scraperExists {
 		log.Error.Println("We don't have a scraper for this website.")
 		log.Info.Println("List of available scrapers:")
 		for site := range sites {
@@ -136,7 +136,7 @@ func main() {
 	// in the CLI by the user.
 	// This will call a file/module/func made specifically to scrap this website.
 	// All available scrapers are stored in the "websites" folder.
-	site_func(&scraper, &options)
+	siteFunc(&scraper, &options)
 
 	log.Info.Println("Finished Scraping", options.Website, "!")
 
