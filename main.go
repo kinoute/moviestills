@@ -1,19 +1,24 @@
 package main
 
 import (
-	"log"
 	"moviestills/config"
+	"moviestills/debug"
 	"moviestills/utils"
 	"moviestills/websites"
+	"os"
+	"reflect"
 	"strings"
 
 	"github.com/alexflint/go-arg"
 	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/debug"
 	"github.com/gocolly/colly/v2/extensions"
+	log "github.com/pterm/pterm"
 )
 
 func main() {
+
+	// Start by cleaning the Terminal Screen
+	clearScreen()
 
 	// Implemented scrapers as today
 	sites := map[string]func(**colly.Collector, *config.Options){
@@ -33,10 +38,28 @@ func main() {
 	var options config.Options
 	arg.MustParse(&options)
 
+	// Disable colors for output
+	if options.NoColors {
+		log.DisableColor()
+	}
+
+	// Interface of the app
+	log.DefaultHeader.Println("Movie Stills", config.VERSION)
+
+	log.DefaultSection.Println("Configuration")
+	printConfiguration(&options)
+
 	// Check presence of website argument
 	if options.Website == "" {
-		log.Fatalln("A website must be set through arguments.")
+		log.Error.Println("A website must be set through arguments.")
+		os.Exit(1)
 	}
+
+	// We override the default prefix label for "info" messages to
+	// align it perfectly on the Terminal with other labels. Otherwise,
+	// since "INFO" is shorter than the other labels, the width
+	// of the different labels is not the same.
+	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
 
 	// Verify if we have a scrapper for the given website.
 	// If we do, "site_func" will now contain a function listed in
@@ -44,12 +67,14 @@ func main() {
 	// website stored in the "websites" folder.
 	site_func, scraper_exists := sites[strings.ToLower(options.Website)]
 	if !scraper_exists {
-		log.Println("We don't have a scraper for this website.")
-		log.Println("List of available scrapers:")
+		log.Error.Println("We don't have a scraper for this website.")
+		log.Info.Println("List of available scrapers:")
 		for site := range sites {
-			log.Println("–", site)
+			log.Info.Println("–", site)
 		}
-		log.Fatalln("See how you can add support for a new website: https://github.com/kinoute/moviestills#contribute")
+		log.Info.Println("See how you can add support for a new website:",
+			log.White("https://github.com/kinoute/moviestills#contribute"))
+		os.Exit(1)
 	}
 
 	// If we're here, it means we have a valid scraper for a valid website!
@@ -58,14 +83,16 @@ func main() {
 	// This folder stores the scraped websites pages.
 	// If we can't create it, stop right there.
 	if _, err := utils.CreateFolder(options.CacheDir); err != nil {
-		log.Fatalln("The cache directory", options.CacheDir, "can't be created:", err)
+		log.Error.Println("The cache directory", log.White(options.CacheDir), "can't be created:", log.Red(err))
+		os.Exit(1)
 	}
 
 	// Create the "data" directory.
 	// This folder stores the movie snapshots.
 	// If we can't create it, stop right there.
 	if _, err := utils.CreateFolder(options.DataDir); err != nil {
-		log.Fatalln("The data directory", options.DataDir, "can't be created:", err)
+		log.Error.Println("The data directory", log.White(options.DataDir), "can't be created:", log.Red(err))
+		os.Exit(1)
 	}
 
 	// Instantiate main scraper
@@ -78,9 +105,10 @@ func main() {
 		scraper.Async = true
 	}
 
-	// Enable Colly Debugging if asked through the CLI
+	// Enable Debugging level if asked through the CLI
 	if options.Debug {
-		scraper.SetDebugger(&debug.LogDebugger{})
+		log.EnableDebugMessages()
+		scraper.SetDebugger(&debug.PTermDebugger{})
 	}
 
 	// Use random user agent and referer to avoid getting banned
@@ -91,9 +119,13 @@ func main() {
 	if err := scraper.Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: options.Parallel,
+		RandomDelay: 1 * options.RandomDelay,
 	}); err != nil {
-		log.Println("Can't change scraper limit options:", err)
+		log.Warning.Println("Can't change scraper limit options:", log.Red(err))
 	}
+
+	log.DefaultSection.Println("Scraping")
+	log.Info.Println("Starting", options.Website, "Scraper")
 
 	// Here we call the website module depending on the website provided
 	// in the CLI by the user.
@@ -101,4 +133,38 @@ func main() {
 	// All available scrapers are stored in the "websites" folder.
 	site_func(&scraper, &options)
 
+	log.Info.Println("Finished Scraping", options.Website, "!")
+
+}
+
+// Clear Terminal Screen
+func clearScreen() {
+	print("\033[H\033[2J")
+}
+
+// Print configuration as a bullet list
+func printConfiguration(options *config.Options) {
+
+	// Get fields and its values from the config struct
+	values := reflect.ValueOf(*options)
+	fields := values.Type()
+
+	// Create bullet lists with configuration
+	configuration := []log.BulletListItem{}
+
+	for i := 0; i < values.NumField(); i++ {
+		configuration = append(configuration,
+			log.BulletListItem{
+				Level:       0,
+				Text:        log.Yellow(fields.Field(i).Name) + ": " + log.Blue((values.Field(i).Interface())),
+				TextStyle:   log.NewStyle(log.FgBlue),
+				BulletStyle: log.NewStyle(log.FgRed),
+			},
+		)
+	}
+
+	// Print the configuration as a bullet list
+	if err := log.DefaultBulletList.WithItems(configuration).Render(); err != nil {
+		log.Error.Println("Could not print configuration", log.Red(err))
+	}
 }

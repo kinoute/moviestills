@@ -1,12 +1,17 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 	"unicode"
+
+	log "github.com/pterm/pterm"
 
 	"golang.org/x/text/runes"
 	"golang.org/x/text/transform"
@@ -66,4 +71,54 @@ func RemoveDisallowedChars(name string) string {
 		name = rep.Replace(name)
 	}
 	return name
+}
+
+// LimitLength Handle overly long strings.
+// Taken from: https://github.com/iawia002/annie/blob/master/utils/utils.go
+func LimitLength(s string, length int) string {
+	// 0 means unlimited
+	if length == 0 {
+		return s
+	}
+
+	const ELLIPSES = "..."
+	str := []rune(s)
+	if len(str) > length {
+		return string(str[:length-len(ELLIPSES)]) + ELLIPSES
+	}
+	return s
+}
+
+// Generate a MD5 hash given a string
+func MD5(fileName string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(fileName))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// Save movie image to the correct folder. Filenames
+// can be hashed with MD5 if the option is set.
+func SaveImage(moviePath, movieName, rawFileName string, body []byte, toHash bool) error {
+
+	fileName := rawFileName
+	extension := filepath.Ext(rawFileName)
+
+	// Hash image filename with MD5 if asked to
+	if toHash {
+		fileName = MD5(rawFileName) + extension
+	}
+
+	outputImgPath := moviePath + "/" + fileName
+
+	// Don't save again it we already downloaded it
+	if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
+		if err = ioutil.WriteFile(outputImgPath, body, 0644); err != nil {
+			return err
+		}
+	}
+
+	// If we're here, image was successfully downloaded
+	log.Success.Println("Got image for", log.Blue(movieName), log.White(rawFileName))
+
+	return nil
 }
