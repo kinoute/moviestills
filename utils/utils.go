@@ -89,13 +89,15 @@ func LimitLength(s string, length int) string {
 	return s
 }
 
-// Md5 hash
+// Generate a MD5 hash given a string
 func MD5(fileName string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(fileName))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
+// Save movie image to the correct folder. Filenames
+// can be hashed with MD5 if the option is set.
 func SaveImage(moviePath, movieName, rawFileName string, body []byte, toHash bool) error {
 
 	fileName := rawFileName
