@@ -12,8 +12,8 @@ A Go CLI application to scrap various websites in order to get high-quality movi
     <a href="https://github.com/kinoute/moviestills/actions/workflows/ci.yml">
         <img src="https://github.com/kinoute/moviestills/actions/workflows/ci.yml/badge.svg" alt="CI" style="max-width: 100%;">
     </a>
-    <a href="https://goreportcard.com/report/github.com/kinoute/moviestills" rel="nofollow">
-        <img src="https://camo.githubusercontent.com/3a2d91e3941d329aa63e6d1c8b834e7c3d6ab2c8ed247a774477d1e694b3851d/68747470733a2f2f676f7265706f7274636172642e636f6d2f62616467652f6769746875622e636f6d2f6b696e6f7574652f6d6f7669657374696c6c73" alt="Go Report" data-canonical-src="https://goreportcard.com/badge/github.com/kinoute/moviestills" style="max-width: 100%;">
+    <a href="https://goreportcard.com/report/github.com/kinoute/moviestills">
+        <img src="https://goreportcard.com/badge/github.com/kinoute/moviestills?style=flat-square" alt="Go Report Card">
     </a>
     <a href="https://hub.docker.com/r/hivacruz/moviestills">
         <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/hivacruz/moviestills/latest?label=Docker%20Image">
@@ -211,7 +211,7 @@ Then start and go inside the container:
 # and go inside it
 docker run \
     --name moviestills-dev \
-    --volume "$PWD:/app" \
+    --volume "${PWD}:/app" \
     --interactive \
     --tty \
     --rm moviestills-dev
