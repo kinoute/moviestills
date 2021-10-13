@@ -128,6 +128,7 @@ func TestCreateFolder(t *testing.T) {
 		// if got is nil, there was an error during creation of the folder
 		if got != c.expected {
 			t.Errorf("CreateFolder(%q) == %q, expected %q", c.args.moviePath, got, c.expected)
+			return
 		}
 	}
 }
@@ -188,6 +189,7 @@ func TestSaveImage(t *testing.T) {
 		got := SaveImage(c.args.moviePath, c.args.movieName, c.args.rawFileName, c.args.body, c.args.toHash)
 		if got.Error() != c.expected {
 			t.Errorf("SaveImage(%v) == %q, expected %q", c.args, got, c.expected)
+			return
 		}
 	}
 }
