@@ -12,5 +12,6 @@ type Options struct {
 	DataDir     string        `arg:"-f, --data-dir,env:DATA_DIR" help:"Where to store movie snapshots" default:"data"`
 	Debug       bool          `arg:"-d, --debug,env:DEBUG" help:"Set Log Level to Debug to see everything" default:"false"`
 	NoColors    bool          `arg:"--no-colors,env:NO_COLORS" help:"Disable colors from output" default:"false"`
+	NoStyle     bool          `arg:"--no-style,env:NO_STYLE" help:"Disable styling and colors entirely from output" default:"false"`
 	Hash        bool          `arg:"--hash,env:HASH" help:"Hash image filenames with md5" default:"false"`
 }

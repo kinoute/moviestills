@@ -38,7 +38,12 @@ func main() {
 	var options config.Options
 	arg.MustParse(&options)
 
-	// Disable colors for output
+	// Disable style and colors for output
+	if options.NoStyle {
+		log.DisableStyling()
+	}
+
+	// Disable colors only for output
 	if options.NoColors {
 		log.DisableColor()
 	}
