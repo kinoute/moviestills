@@ -117,7 +117,7 @@ func TestCreateFolder(t *testing.T) {
 		{
 			name: "wrong path to create folder",
 			args: args{
-				moviePath: "/root/8 Mile$$$\\..111@:£*\n",
+				moviePath: "/....$x/dev/null/root/8 Mile$$$\\..111@:£*\n",
 			},
 			expected: "",
 		},
@@ -128,7 +128,6 @@ func TestCreateFolder(t *testing.T) {
 		// if got is nil, there was an error during creation of the folder
 		if got != c.expected {
 			t.Errorf("CreateFolder(%q) == %q, expected %q", c.args.moviePath, got, c.expected)
-			return
 		}
 	}
 }
@@ -175,13 +174,13 @@ func TestSaveImage(t *testing.T) {
 		{
 			name: "can't save image in protected folder",
 			args: args{
-				moviePath:   "/root/8 Mile$$$\\..111@:£*\n",
+				moviePath:   "/....$x/dev/null/root/8 Mile$$$\\..111@:£*\n",
 				movieName:   "8 Mile",
 				rawFileName: "screen1.jpg",
 				body:        []byte{96, 23},
 				toHash:      true,
 			},
-			expected: "open /root/8 Mile$$$\\..111@:£*\n/ba2c2d7263eff7f1c6cec59a018d27cc.jpg: no such file or directory",
+			expected: "open /....$x/dev/null/root/8 Mile$$$\\..111@:£*\n/ba2c2d7263eff7f1c6cec59a018d27cc.jpg: no such file or directory",
 		},
 	}
 
@@ -189,7 +188,6 @@ func TestSaveImage(t *testing.T) {
 		got := SaveImage(c.args.moviePath, c.args.movieName, c.args.rawFileName, c.args.body, c.args.toHash)
 		if got.Error() != c.expected {
 			t.Errorf("SaveImage(%v) == %q, expected %q", c.args, got, c.expected)
-			return
 		}
 	}
 }
