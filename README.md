@@ -140,7 +140,7 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 | [EvanERichards](https://www.evanerichards.com) | evanerichards                   | A short but interesting list of movies with a lot of snapshots for each. Also includes some TV Series but they are ignored by the scraper. | ~245             |
 | [Film-Grab](https://film-grab.com)             | film-grab                       | A great list of movies with a few snapshots for each. Snapshots were cherry-picked and show nice cinematography. | ~2829            |
 | [HighDefDiscNews](https://highdefdiscnews.com) | highdefdiscnews                 | A few hundreds movies featured with high-quality snapshots (png, lossless) in native resolution. | ~209             |
-| [Movie-Screencaps](https://movie-screencaps.com) | movie-screencaps | Website with DVD, BD, and 4K BD movie snapshots. Since hundreds of snapshots are available for each movie (one per second or so), we only take some of them per paginated page. | ~715 |
+| [Movie-Screencaps](https://movie-screencaps.com) | movie-screencaps | Website with DVD, BD, and 4K BD movie snapshots. Since thousands of snapshots are available for each movie (one per second or so), we only take some of them per paginated page. | ~715 |
 | [ScreenMusings](https://screenmusings.org) | screenmusings | A small list of movies but with nice cherry-picked snapshots. | ~260 |
 | [StillsFrmFilms](https://stillsfrmfilms.wordpress.com) | stillsfrmfilms | A very small list of movies but, again, the snapshots were nicely chosen and depict perfectly the atmosphere of each movie. | ~63 |
 
@@ -171,6 +171,7 @@ Then:
 ```bash
 # download the dependencies
 go mod download
+go mod tidy
 
 # you can run the app without compiling
 go run . --help
