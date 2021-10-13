@@ -26,7 +26,7 @@ RUN GOOS=linux go build -ldflags "-s -w"
 # final stage to serve binary
 FROM alpine:3.14
 
-WORKDIR /root
+WORKDIR /app
 
 COPY --from=builder /app/moviestills .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
