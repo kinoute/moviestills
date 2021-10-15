@@ -38,6 +38,12 @@ func main() {
 	var options config.Options
 	arg.MustParse(&options)
 
+	// We override the default prefix label for "info" messages to
+	// align it perfectly on the Terminal with other labels. Otherwise,
+	// since "INFO" is shorter than the other labels, the width
+	// of the different labels is not the same.
+	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
+
 	// Disable style and colors for output
 	if options.NoStyle {
 		log.DisableStyling()
@@ -51,6 +57,12 @@ func main() {
 	// Interface of the app
 	log.DefaultHeader.Println("Movie Stills", config.VERSION)
 
+	// Display available scrapers implemented
+	if options.ListScrapers {
+		listAvailableScrapers(sites)
+		return
+	}
+
 	log.DefaultSection.Println("Configuration")
 	printConfiguration(&options)
 
@@ -60,12 +72,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// We override the default prefix label for "info" messages to
-	// align it perfectly on the Terminal with other labels. Otherwise,
-	// since "INFO" is shorter than the other labels, the width
-	// of the different labels is not the same.
-	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
-
 	// Verify if we have a scrapper for the given website.
 	// If we do, "site_func" will now contain a function listed in
 	// the sites map that matches a module for this specific
@@ -73,12 +79,8 @@ func main() {
 	siteFunc, scraperExists := sites[strings.ToLower(options.Website)]
 	if !scraperExists {
 		log.Error.Println("We don't have a scraper for this website.")
-		log.Info.Println("List of available scrapers:")
-		for site := range sites {
-			log.Info.Println("–", site)
-		}
-		log.Info.Println("See how you can add support for a new website:",
-			log.White("https://github.com/kinoute/moviestills#contribute"))
+		// List available scrapers
+		listAvailableScrapers(sites)
 		os.Exit(1)
 	}
 
@@ -172,4 +174,39 @@ func printConfiguration(options *config.Options) {
 	if err := log.DefaultBulletList.WithItems(configuration).Render(); err != nil {
 		log.Error.Println("Could not print configuration", log.Red(err))
 	}
+}
+
+// Print list of available scrapers
+func listAvailableScrapers(sites map[string]func(**colly.Collector, *config.Options)) {
+
+	log.DefaultSection.Println("Scrapers available")
+
+	// Create bullet lists with available scrapers
+	availableScrapers := []log.BulletListItem{}
+	for site := range sites {
+		availableScrapers = append(availableScrapers,
+			log.BulletListItem{
+				Level:       0,
+				Text:        log.Yellow(site),
+				TextStyle:   log.NewStyle(log.FgBlue),
+				BulletStyle: log.NewStyle(log.FgRed),
+			},
+		)
+	}
+
+	// Print the available scrapers as a bullet list
+	if err := log.DefaultBulletList.WithItems(availableScrapers).Render(); err != nil {
+		log.Error.Println("Could not print available scrapers", log.Red(err))
+	}
+
+	// Show example of usage
+	log.DefaultSection.Println("Usage")
+	log.DefaultBasicText.Println("Use the", log.Blue("--website"), "flag like", log.Blue("--website"), log.White("blubeaver"), "to start scraping.")
+
+	// Show how to contribute
+	log.DefaultSection.Println("Contribution")
+	log.DefaultBasicText.Println("See how you can add support for a new website:",
+		log.White("https://github.com/kinoute/moviestills#contribute"),
+	)
+
 }

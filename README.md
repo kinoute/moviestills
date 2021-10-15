@@ -29,8 +29,8 @@ There are various ways to install or use the application:
 Download the latest binary from the [releases](https://github.com/kinoute/moviestills/releases) page for your OS. Then you can simply execute the binary like this:
 
 ```bash
-# example on linux
-./moviestills --help
+# list all the implemented scrapers
+./moviestills --list
 
 # You can also use environment variables 
 # instead of CLI arguments
@@ -82,11 +82,12 @@ By default, the `docker run` command above will always `pull` before running to 
 Output of `./moviestills --help`:
 
 ```bash
-Usage: moviestills --website WEBSITE [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
+Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
 
 Options:
   --website WEBSITE, -w WEBSITE
                          Website to scrap movie stills on [env: WEBSITE]
+  --list, -l             List all available scrapers implemented [default: false, env: LIST]
   --parallel PARALLEL, -p PARALLEL
                          Limit the maximum parallelism [default: 2, env: PARALLEL]
   --delay DELAY, -r DELAY
