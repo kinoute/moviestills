@@ -107,6 +107,9 @@ func main() {
 		colly.CacheDir(options.CacheDir),
 	)
 
+	// Set request timeout
+	scraper.SetRequestTimeout(options.TimeOut)
+
 	// Enable asynchronous jobs if asked
 	if options.Async {
 		scraper.Async = true
@@ -200,6 +203,7 @@ func listAvailableScrapers(sites map[string]func(**colly.Collector, *config.Opti
 	// Print the available scrapers as a bullet list
 	if err := log.DefaultBulletList.WithItems(availableScrapers).Render(); err != nil {
 		log.Error.Println("Could not print available scrapers", log.Red(err))
+		os.Exit(1)
 	}
 
 	// Show example of usage

@@ -9,6 +9,7 @@ type Options struct {
 	Parallel     int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"2"`
 	RandomDelay  time.Duration `arg:"-r, --delay,env:RANDOM_DELAY" help:"Add some random delay between requests" default:"1s"`
 	Async        bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running jobs" default:"false"`
+	TimeOut      time.Duration `arg:"-t, --timeout,env:TIMEOUT" help:"Set the default request timeout for the scraper" default:"15s"`
 	CacheDir     string        `arg:"-c, --cache-dir,env:CACHE_DIR" help:"Where to cache scraped websites pages" default:"cache"`
 	DataDir      string        `arg:"-f, --data-dir,env:DATA_DIR" help:"Where to store movie snapshots" default:"data"`
 	Debug        bool          `arg:"-d, --debug,env:DEBUG" help:"Set Log Level to Debug to see everything" default:"false"`

@@ -83,7 +83,7 @@ By default, the `docker run` command above will always `pull` before running to 
 Output of `./moviestills --help`:
 
 ```bash
-Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
+Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--timeout TIMEOUT] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
 
 Options:
   --website WEBSITE, -w WEBSITE
@@ -94,6 +94,8 @@ Options:
   --delay DELAY, -r DELAY
                          Add some random delay between requests [default: 1s, env: RANDOM_DELAY]
   --async, -a            Enable asynchronus running jobs [default: false, env: ASYNC]
+  --timeout TIMEOUT, -t TIMEOUT
+                         Set the default request timeout for the scraper [default: 15s, env: TIMEOUT]
   --cache-dir CACHE-DIR, -c CACHE-DIR
                          Where to cache scraped websites pages [default: cache, env: CACHE_DIR]
   --data-dir DATA-DIR, -f DATA-DIR
