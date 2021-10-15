@@ -33,7 +33,8 @@ Download the latest binary from the [releases](https://github.com/kinoute/movies
 ./moviestills --list
 
 # You can also use environment variables 
-# instead of CLI arguments
+# instead of CLI arguments.
+# scrap the blubeaver website with default settings
 WEBSITE=blubeaver ./moviestills
 ```
 
@@ -109,9 +110,68 @@ Options:
 
 For boolean arguments such as `--async` or `--debug`, their equivalent as environment variables is, for example, `ASYNC=false` or `ASYNC=true`.
 
+### Examples
+
+The simple goal of this CLI app is to scrap movie snapshots from a few supported websites. You can use either the binary or the Docker image to run `moviestills`.
+
+#### See supported websites
+
+To see the list of supported websites on which we can download movie snapshots, you can do:
+
+```bash
+# see all supported websites
+./moviestills --list
+# or
+LIST=true ./moviestills
+```
+
+The list of supported websites with way more details can also be seen [below](#supported-websites).
+
+#### Scrap a website with asynchronous jobs
+
+Asynchronous jobs make the scraping faster. You can also increase the maximum number of simultaneous requests by changing the `--parallel` flag or the `PARALLEL` environment variable (set to `2` by default).
+
+```bash
+# with CLI arguments
+./moviestills --website film-grab --async
+
+# with environment variables
+WEBSITE=film-grab ASYNC=true ./moviestills
+
+# increase to 10 the maximum number of simultaneous requests
+./moviestills --website dvdbeaver --async --parallel 10
+```
+
+#### Docker, hashed filenames, random delays and no colors
+
+A complete example that scraps a website with:
+
+* Docker ;
+* Asynchronous jobs ;
+* Random delays between requests ;
+* Hashed filenames ;
+* No colors on the terminal output.
+
+```bash
+# docker with CLI arguments
+docker run \
+    --name moviestills \
+    --pull=always \
+    --volume "${PWD}/cache:/app/cache" \
+    --volume "${PWD}/data:/app/data" \
+    --rm ghcr.io/kinoute/moviestills:latest \
+    --website movie-screencaps \
+    --async \
+    --delay 5s \
+    --hash \
+    --no-colors
+```
+
+With Docker, settings can also be set with environment variables instead of CLI arguments with the `—env` or `-e` flag.
+
 ### Cache
 
-By default, every scraped page will be cached in the `cache` folder. You can change the name or path to the folder  through the options as listed above, with `—cache-dir` or the `CACHE_DIR` environment variable. This is an important folder as it stores everything that was scraped.
+By default, every scraped page will be cached in the `cache` folder. You can change the name or path to the folder  through the options with `—cache-dir` or the `CACHE_DIR` environment variable. This is an important folder as it stores everything that was scraped.
 
 It avoids requesting again some websites pages when there is no need to. It is a nice thing as we don't want to flood these websites with thousands of useless requests. It is also handy to continue an early-stopped scraping job.
 
