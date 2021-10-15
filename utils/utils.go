@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -50,6 +51,12 @@ func Normalize(str string) (string, error) {
 	// Get rid of trailing/leading spaces and also multiple spaces
 	s = strings.TrimSpace(s)
 	s = space.ReplaceAllString(s, " ")
+
+	// Return an error if result is empty
+	if s == "" {
+		return "", errors.New("Empty result")
+	}
+
 	return s, err
 }
 
