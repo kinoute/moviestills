@@ -54,7 +54,7 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 
 		// Take care of weird accents and spaces
 		movieName, err := utils.Normalize(e.Text)
-		if err != nil || movieName == "" {
+		if err != nil {
 			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), ":", log.Red(err))
 			return
 		}

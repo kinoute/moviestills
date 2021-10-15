@@ -66,6 +66,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			log.Error.Println("Can't visit movie list page", log.White(movieListURL), log.Red(err))
 		}
 
+		// In case we enabled asynchronous jobs
 		movieListScraper.Wait()
 	})
 
@@ -95,16 +96,16 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		// We use the CSS4 case-insensitive feature "i" to make sure
 		// our filter will find everything, no matter the case.
 		reviewLink := e.DOM.Find("a[href*='film' i]")
-		movieURL, exists := reviewLink.Attr("href")
-		if !exists {
+		movieURL, urlExists := reviewLink.Attr("href")
+		if !urlExists {
 			log.Debug.Println("no movie review link could be found, next")
 			return
 		}
 
 		// Take care of weird characters in the movie's title
 		movieName, err := utils.Normalize(reviewLink.Text())
-		if err != nil || movieName == "" {
-			log.Error.Println("Can't normalize Movie name for", log.White(reviewLink.Text()))
+		if err != nil {
+			log.Error.Println("Can't normalize Movie name for", log.White(reviewLink.Text()), log.Red(err))
 			return
 		}
 
@@ -130,6 +131,9 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
 			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
+
+		// In case we enabled asynchronous jobs
+		movieScraper.Wait()
 	})
 
 	// Look for links on images that redirects to a "largest" version.
@@ -171,7 +175,7 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 
-			if movieImageHeight >= 265 && movieImageHeight <= 700 && movieImageWidth >= 500 {
+			if movieImageHeight >= 265 && movieImageWidth >= 500 {
 				if err := e.Request.Visit(movieImageURL); err != nil {
 					log.Error.Println("Can't request inline image", log.White(movieImageURL), log.Red(err))
 				}

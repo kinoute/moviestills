@@ -57,7 +57,7 @@ func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 
 		// Ignore entries that are not movies
 		if category != "Movie" && category != "Animation" {
-			log.Debug.Printf("\"%s\" is not a Movie, ignoring...", log.White(title))
+			log.Debug.Println(log.White(title), "is not a Movie, ignoring...")
 			return
 		}
 

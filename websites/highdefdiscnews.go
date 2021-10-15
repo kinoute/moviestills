@@ -57,8 +57,8 @@ func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) 
 
 		// Remove weird accents and spaces from the movie's title
 		movieName, err := utils.Normalize(tmpMovieName)
-		if err != nil || movieName == "" {
-			log.Error.Println("Can't normalize Movie name for", log.White(e.Text))
+		if err != nil {
+			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), log.Red(err))
 			return
 		}
 

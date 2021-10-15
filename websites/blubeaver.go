@@ -72,7 +72,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 		// Remove weird accents and spaces from the movie's title
 		movieName, err := utils.Normalize(e.Text)
-		if err != nil || movieName == "" {
+		if err != nil {
 			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), ":", log.Red(err))
 			return
 		}
@@ -130,7 +130,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			movieImageWidth, _ := strconv.Atoi(e.Attr("width"))
 			movieImageHeight, _ := strconv.Atoi(e.Attr("height"))
 
-			if movieImageHeight >= 265 && movieImageHeight <= 700 && movieImageWidth >= 500 {
+			if movieImageHeight >= 265 && movieImageWidth >= 500 {
 				if err := e.Request.Visit(movieImageURL); err != nil {
 					log.Error.Println("Can't get inline image", log.White(movieImageURL), ":", log.Red(err))
 				}
@@ -155,12 +155,17 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			//
 			// In this case, we can try to save the image
 			// shown on the webpage that has a lower resolution.
-			if lowImageURL, imgExists := e.DOM.Find("img").Attr("src"); imgExists && err.Error() == "Not Found" {
-				log.Info.Println("Trying to save low quality image instead", log.White(lowImageURL))
-				if err := e.Request.Visit(e.Request.AbsoluteURL(lowImageURL)); err != nil {
-					log.Error.Println("Can't get low resolution image", log.White(lowImageURL), ":", log.Red(err))
-				}
+			lowImageURL, imgExists := e.DOM.Find("img").Attr("src")
+			if !imgExists {
+				log.Error.Println("Could not find an image inside link", log.White(movieImageURL))
+				return
 			}
+
+			log.Info.Println("Trying to save low quality image instead", log.White(lowImageURL))
+			if err := e.Request.Visit(e.Request.AbsoluteURL(lowImageURL)); err != nil {
+				log.Error.Println("Can't get low resolution image", log.White(lowImageURL), ":", log.Red(err))
+			}
+
 		}
 	})
 

@@ -52,7 +52,11 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 	(*scraper).OnHTML("div.page-body div.wp-caption", func(e *colly.HTMLElement) {
 
 		// Isolate the movie's title from the description
-		movieName, _ := utils.Normalize(e.DOM.Find("p.wp-caption-text").Text())
+		movieName, err := utils.Normalize(e.DOM.Find("p.wp-caption-text").Text())
+		if err != nil {
+			log.Error.Println("Can't normalize the movie title", log.Red(err))
+			return
+		}
 
 		// Isolate the movie page URL
 		movieURL, urlExists := e.DOM.Find("a[href*=stills]").Attr("href")
