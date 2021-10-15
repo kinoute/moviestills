@@ -149,7 +149,8 @@ func clearScreen() {
 	print("\033[H\033[2J")
 }
 
-// Print configuration as a bullet list
+// Print configuration as a bullet list. Most
+// likely when the app starts.
 func printConfiguration(options *config.Options) {
 
 	// Get fields and its values from the config struct
@@ -176,7 +177,9 @@ func printConfiguration(options *config.Options) {
 	}
 }
 
-// Print list of available scrapers
+// Print list of available scrapers. We use it with
+// the --list flag or when a user enters a website's name
+// that is not implemented.
 func listAvailableScrapers(sites map[string]func(**colly.Collector, *config.Options)) {
 
 	log.DefaultSection.Println("Scrapers available")
