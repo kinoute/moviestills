@@ -82,7 +82,7 @@ By default, the `docker run` command above will always `pull` before running to 
 
 Output of `./moviestills --help`:
 
-```bash
+```
 Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--timeout TIMEOUT] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
 
 Options:
