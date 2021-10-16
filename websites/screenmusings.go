@@ -109,6 +109,11 @@ func ScreenMusingsScraper(scraper **colly.Collector, options *config.Options) {
 		}
 	})
 
+	// Before making a request to URL
+	movieScraper.OnRequest(func(r *colly.Request) {
+		log.Debug.Println("visiting", log.White(r.URL.String()))
+	})
+
 	// Check what we just visited and if its an image
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {

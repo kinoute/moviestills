@@ -101,9 +101,9 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 		movieScraper.Wait()
 	})
 
-	// Before making a request to movie review page
+	// Before making a request to URL
 	movieScraper.OnRequest(func(r *colly.Request) {
-		log.Debug.Println("visiting movie page", log.White(r.URL.String()))
+		log.Debug.Println("visiting", log.White(r.URL.String()))
 	})
 
 	// It's rare but sometimes on BD reviews there are no large versions.
@@ -165,7 +165,6 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			if err := e.Request.Visit(e.Request.AbsoluteURL(lowImageURL)); err != nil {
 				log.Error.Println("Can't get low resolution image", log.White(lowImageURL), ":", log.Red(err))
 			}
-
 		}
 	})
 
@@ -196,5 +195,4 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// In case we enabled asynchronous jobs
 	(*scraper).Wait()
-
 }

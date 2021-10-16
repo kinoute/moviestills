@@ -105,6 +105,11 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 		}
 	})
 
+	// Before making a request to URL
+	movieScraper.OnRequest(func(r *colly.Request) {
+		log.Debug.Println("visiting", log.White(r.URL.String()))
+	})
+
 	// Check if what we just visited is an image and
 	// save it to the movie folder we created earlier.
 	movieScraper.OnResponse(func(r *colly.Response) {

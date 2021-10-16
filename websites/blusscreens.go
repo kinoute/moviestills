@@ -176,6 +176,11 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 			}
 		})
 
+	// Before making a request to URL
+	movieScraper.OnRequest(func(r *colly.Request) {
+		log.Debug.Println("visiting", log.White(r.URL.String()))
+	})
+
 	// Get IMDB id from the IMDB link.
 	// It is an unique ID for each movie and it is
 	// better to use it than the movie's title.
