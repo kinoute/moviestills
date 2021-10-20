@@ -1,15 +1,16 @@
 # linting golang/formatting
-- repo: git://github.com/dnephin/pre-commit-golang
-  rev: v0.4.0
-  hooks:
-    - id: go-fmt
-    - id: go-vet
-    - id: go-imports
-    - id: golangci-lint
+repos:
+  - repo: git://github.com/dnephin/pre-commit-golang
+    rev: v0.4.0
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-imports
+      - id: golangci-lint
 
-# linting dockerfiles
-- repo: https://github.com/hadolint/hadolint.git
-  rev: v2.1.0
-  hooks:
-    - id: hadolint-docker
-      entry: hadolint/hadolint:v2.1.0 hadolint
+  # linting dockerfiles
+  - repo: https://github.com/hadolint/hadolint.git
+    rev: v2.1.0
+    hooks:
+      - id: hadolint-docker
+        entry: hadolint/hadolint:v2.1.0 hadolint
