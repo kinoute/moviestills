@@ -208,7 +208,9 @@ func listAvailableScrapers(sites map[string]func(**colly.Collector, *config.Opti
 
 	// Show example of usage
 	log.DefaultSection.Println("Usage")
-	log.DefaultBasicText.Println("Use the", log.Blue("--website"), "flag like", log.Blue("--website"), log.White("blubeaver"), "to start scraping.")
+	log.DefaultBasicText.Println("Use the", log.Blue("--website"), "flag like",
+		log.Blue("--website"), log.White("blubeaver"), "to start scraping.",
+	)
 
 	// Show how to contribute
 	log.DefaultSection.Println("Contribution")

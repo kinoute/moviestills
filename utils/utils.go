@@ -129,7 +129,7 @@ func SaveImage(moviePath, movieName, rawFileName string, body []byte, toHash boo
 	}
 
 	// If we're here, image was successfully downloaded
-	log.Success.Println("Got image for", log.Blue(movieName), log.White(rawFileName))
+	log.Success.Println("Saved image for", log.Blue(movieName), log.White(rawFileName))
 
 	return nil
 }
