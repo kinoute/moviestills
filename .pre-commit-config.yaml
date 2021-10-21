@@ -9,8 +9,7 @@ repos:
       - id: golangci-lint
 
   # linting dockerfiles
-  - repo: https://github.com/hadolint/hadolint.git
-    rev: v2.1.0
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v1.19.0
     hooks:
-      - id: hadolint-docker
-        entry: hadolint/hadolint:v2.1.0 hadolint
+      - id: hadolint
