@@ -4,4 +4,4 @@ package config
 const AUTHOR string = "Yann Defretin"
 
 // Version of the app
-const VERSION string = "0.1.1"
+const VERSION string = "0.2.0"
