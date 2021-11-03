@@ -157,37 +157,3 @@ func TestMD5(t *testing.T) {
 		})
 	}
 }
-
-func TestSaveImage(t *testing.T) {
-	type args struct {
-		moviePath   string
-		movieName   string
-		rawFileName string
-		body        []byte
-		toHash      bool
-	}
-	cases := []struct {
-		name     string
-		args     args
-		expected string
-	}{
-		{
-			name: "can't save image in protected folder",
-			args: args{
-				moviePath:   "/....$x/dev/null/root/8 Mile$$$\\..111@:£*\n",
-				movieName:   "8 Mile",
-				rawFileName: "screen1.jpg",
-				body:        []byte{96, 23},
-				toHash:      true,
-			},
-			expected: "open /....$x/dev/null/root/8 Mile$$$\\..111@:£*\n/ba2c2d7263eff7f1c6cec59a018d27cc.jpg: no such file or directory",
-		},
-	}
-
-	for _, c := range cases {
-		got := SaveImage(c.args.moviePath, c.args.movieName, c.args.rawFileName, c.args.body, c.args.toHash)
-		if got.Error() != c.expected {
-			t.Errorf("SaveImage(%v) == %q, expected %q", c.args, got, c.expected)
-		}
-	}
-}
