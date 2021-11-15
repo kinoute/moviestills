@@ -15,6 +15,9 @@ A Go CLI application to scrap various websites in order to get high-quality movi
     <a href="https://goreportcard.com/report/github.com/kinoute/moviestills">
         <img src="https://goreportcard.com/badge/github.com/kinoute/moviestills?style=flat-square" alt="Go Report Card">
     </a>
+    <a href="https://github.com/kinoute/moviestills/actions/workflows/test-scrapers.yml">
+        <img src="https://github.com/kinoute/moviestills/actions/workflows/test-scrapers.yml/badge.svg" alt="Test Scrapers" />
+    </a>
     <a href="https://hub.docker.com/r/hivacruz/moviestills">
         <img alt="Docker Image Size" src="https://img.shields.io/docker/image-size/hivacruz/moviestills/latest?label=Docker%20Image">
     </a>
