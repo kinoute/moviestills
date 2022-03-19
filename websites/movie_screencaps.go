@@ -25,6 +25,7 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 		"i0.wp.com",
 		"i1.wp.com",
 		"i2.wp.com",
+		"i3.wp.com",
 		"wp.com",
 	}
 
