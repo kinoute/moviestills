@@ -1,11 +1,11 @@
 # base stage
-FROM golang:1.17.8-alpine as base
+FROM golang:1.18-alpine as base
 
 RUN apk update && \
     apk --no-cache add \
-    ca-certificates=20191127-r5 \
-    gcc=10.3.1_git20210424-r2 \
-    musl-dev=1.2.2-r3
+    ca-certificates=20211220-r0 \
+    gcc=10.3.1_git20211027-r0 \
+    musl-dev=1.2.2-r7
 
 WORKDIR /app
 
