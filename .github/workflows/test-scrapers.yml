@@ -23,5 +23,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Tidy
+      run: go mod tidy
+
     - name: Test
       run: go test -v ./...
