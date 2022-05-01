@@ -137,7 +137,7 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Some old pages of blusscreens have a different layout.
 	// We need a special function to handle this.
-	// eg: https://www.bluscreens.net/oss-117-rio-ne-reacutepond-plus.html
+	// eg: https://www.bluscreens.net/skin-i-live-in-the.html
 	movieScraper.OnHTML("div.galleryInnerImageHolder a[href*=postimage]", func(e *colly.HTMLElement) {
 		postImgURL := e.Request.AbsoluteURL(e.Attr("href"))
 		log.Debug.Println("found postimage link", log.White(postImgURL))

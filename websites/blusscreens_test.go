@@ -37,11 +37,11 @@ func TestBlusNormalMoviePage(t *testing.T) {
 // eg: OSS 117
 func TestBlusAlternativeMoviePage(t *testing.T) {
 	// Request the HTML page.
-	doc := utils.GetHTMLCode("https://www.bluscreens.net/oss-117-rio-ne-reacutepond-plus.html")
+	doc := utils.GetHTMLCode("https://www.bluscreens.net/skin-i-live-in-the.html")
 
 	numLargeImages := doc.Find("div.galleryInnerImageHolder a[href*=postimage]").Length()
-	if numLargeImages != 30 {
-		log.Fatalln("Number of links to large images should be 3O:", numLargeImages)
+	if numLargeImages != 40 {
+		log.Fatalln("Number of links to large images should be 40:", numLargeImages)
 	}
 
 }
