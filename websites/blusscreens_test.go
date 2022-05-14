@@ -68,7 +68,7 @@ func TestBlusDownloadImageLink(t *testing.T) {
 		log.Fatalln("Link of download image could not be found")
 	}
 
-	if imgURL != "https://i.pixxxels.cc/Q8y2cJC0/59.png?dl=1" {
-		log.Fatalln("download image link not correct, expected", "https://i.pixxxels.cc/Q8y2cJC0/59.png?dl=1", "got", imgURL)
+	if imgURL != "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1" {
+		log.Fatalln("download image link not correct, expected", "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1", "got", imgURL)
 	}
 }
