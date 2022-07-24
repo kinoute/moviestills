@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="./.github/images/banner.png" alt="movie stills" height="200px">
+  <img src="https://raw.githubusercontent.com/kinoute/moviestills/master/.github/images/banner.png" alt="movie stills" height="200px">
   <br>
   Movie Stills
   </br>
