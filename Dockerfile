@@ -4,8 +4,8 @@ FROM golang:1.18-alpine as base
 RUN apk update && \
     apk --no-cache add \
     ca-certificates=20211220-r0 \
-    gcc=10.3.1_git20211027-r0 \
-    musl-dev=1.2.2-r7
+    gcc=11.2.1_git20220219-r2 \
+    musl-dev=1.2.3-r0
 
 WORKDIR /app
 
