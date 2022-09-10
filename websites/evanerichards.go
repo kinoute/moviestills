@@ -10,10 +10,12 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// This webpage stores a list of links to movie, TV movies, Series...
+// EvanERichardsURL is the webpage that stores a list of links to movie,
+// TV movies, Series...
 const EvanERichardsURL string = "https://www.evanerichards.com/index"
 
-// Main function that handles all the scraping logic for this website
+// EvanERichardsScraper is the main function that handles all the scraping logic
+// for this website.
 func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

@@ -10,10 +10,11 @@ import (
 	log "github.com/pterm/pterm"
 )
 
-// This webpage stores a list of links to movie reviews of Blu-rays
+// BluBeaverURL is the webpage stores a list of links to movie reviews of Blu-rays
 const BluBeaverURL string = "http://www.dvdbeaver.com/blu-ray.htm"
 
-// Main function that handles all the scraping logic for this website
+// BluBeaverScraper is the main function that handles all the scraping logic
+// for this website.
 func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

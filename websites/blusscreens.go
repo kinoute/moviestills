@@ -11,15 +11,16 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// We use the cinematographers page because the movie's title
-// can be easily scrapped/parsed there instead of the screen
-// captures page (#, A, Z) where links are images.
+// BlusURL is the cinematographers page URL. We use this
+// because the movie's title can be easily scrapped/parsed
+// there instead of the screen captures page (#, A, Z) where links are images.
 //
 // The downside is, some movies (animation?) might be missing
 // because they don't have cinematographers associated to it.
 const BlusURL string = "https://www.bluscreens.net/cinematographers.html"
 
-// Don't download images that are less than 20kb.
+// MinimumSize is the threshold in bytes to decide if we want to download
+// an image or not.
 // It is helpful for this website since most of the images are hosted
 // on imgur and some might have been deleted. When an image is deleted
 // on imgur, it returns a small image with some text on it. We don't want that.
@@ -32,7 +33,8 @@ const MinimumSize int = 1024 * 20
 // 	Path  string
 // }
 
-// Main function that handles all the scraping logic for this website
+// BlusScraper is the main function that handles all the scraping
+// logic for this website.
 func BlusScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Save movie infos as JSON

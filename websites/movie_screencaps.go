@@ -11,10 +11,11 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// Page that lists all movies available, sorted alphabetically
+// ScreenCapsURL is the page that lists all movies available, sorted alphabetically
 const ScreenCapsURL string = "https://movie-screencaps.com/movie-directory/"
 
-// Main function that handles all the scraping logic for this website
+// ScreenCapsScraper is the main function that handles all the scraping logic
+// for this website.
 func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domains for the main scrapper.

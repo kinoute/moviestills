@@ -11,11 +11,12 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// This webpage stores a list of links to movie list pages sorted by alphabet (#, a, z).
-// It's a good starting point for our task.
+// BeaverURL is the webpage that stores a list of links to movie list pages
+// sorted by alphabet (#, a, z). It's a good starting point for our task.
 const BeaverURL string = "http://www.dvdbeaver.com/film/reviews.htm"
 
-// Main function that handles all the scraping logic for this website
+// DVDBeaverScraper is the main function that handles all the scraping
+// logic for this website.
 func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.

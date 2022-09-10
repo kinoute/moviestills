@@ -19,12 +19,12 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// Remove GET parameters from URL.
+// removeParams is a regex to remove GET parameters from URL.
 // Sometimes we want to strip out forced dimensions
 // or weird parameters that makes filenames weird.
 var removeParams = regexp.MustCompile(`(\?.*)$`)
 
-// Use the RegExp compiled above to remove URL Params
+// RemoveURLParams is used to remove URL Params
 func RemoveURLParams(url string) string {
 	return removeParams.ReplaceAllString(url, "")
 }
@@ -34,8 +34,8 @@ func RemoveURLParams(url string) string {
 var normalizer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 var space = regexp.MustCompile(`\s+`)
 
-// Remove anything weird from a string. In our
-// case, movie titles. That way, creating folders
+// Normalize a string. Remove anything weird from a string.
+// In our case, movie titles. That way, creating folders
 // or filenames won't be a problem.
 func Normalize(str string) (string, error) {
 	// Get rid of accents

@@ -10,10 +10,12 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// This webpage stores a list of links to movie pages with Blu-rays images
+// HighDefDiscNewsURL is the webpage that stores a list of links to movie pages
+// with Blu-rays images.
 const HighDefDiscNewsURL string = "https://highdefdiscnews.com/blu-ray-screenshots/"
 
-// Main function that handles all the scraping logic for this website
+// HighDefDiscNewsScraper is the main function that handles all the scraping logic
+// for this website.
 func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) {
 
 	// Change allowed domain for the main scraper.
