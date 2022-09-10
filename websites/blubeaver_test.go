@@ -80,7 +80,7 @@ func TestMoviePageWithOnlyInlineImages(t *testing.T) {
 		log.Fatalln("Number of large images should be zero:", numLargeImages)
 	}
 
-	// Only inline images availabe, should have 12 of them
+	// Only inline images available, should have 12 of them
 	numInlineImgs := 0
 	doc.Find(":not(a) >" +
 		"img:not([src*='banner' i])" +
