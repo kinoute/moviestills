@@ -266,7 +266,7 @@ If you don't have Go installed, you can build a Docker Image to start developing
 
 ```bash
 # build development image
-docker --tag moviestills-dev . \
+docker build --tag moviestills-dev . \
     --target base
 ```
 
