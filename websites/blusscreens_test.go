@@ -50,11 +50,11 @@ func TestBlusAlternativeMoviePage(t *testing.T) {
 // eg: Pain & Gain
 func TestBlusAlternative2MoviePage(t *testing.T) {
 	// Request the HTML page.
-	doc := utils.GetHTMLCode("https://www.bluscreens.net/pain--gain.html")
+	doc := utils.GetHTMLCode("https://www.bluscreens.net/tie-me-up-tie-me-down.html")
 
 	numLargeImages := doc.Find("td.wsite-multicol-col div a[href*=postim]").Length()
-	if numLargeImages != 60 {
-		log.Fatalln("Number of links to large images should be 60:", numLargeImages)
+	if numLargeImages != 50 {
+		log.Fatalln("Number of links to large images should be 50:", numLargeImages)
 	}
 
 }
