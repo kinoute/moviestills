@@ -1,5 +1,5 @@
 # base stage
-FROM golang:1.18.9-alpine3.17 as base
+FROM golang:1.18.10-alpine3.17 as base
 
 RUN apk update && \
     apk --no-cache add \
