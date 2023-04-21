@@ -17,8 +17,8 @@ jobs:
   go-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
           stable: 'false'
           go-version: '1.18'
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@master
@@ -52,12 +52,12 @@ jobs:
     steps:
 
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Tidy
       run: go mod tidy
@@ -78,10 +78,10 @@ jobs:
     needs: [test]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: '1.18'
 
@@ -104,7 +104,7 @@ jobs:
 
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
