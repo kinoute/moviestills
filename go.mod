@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/alexflint/go-arg v1.4.3
 	github.com/gocolly/colly/v2 v2.1.0
-	github.com/pterm/pterm v0.12.61
+	github.com/pterm/pterm v0.12.62
 	golang.org/x/text v0.9.0
 )
 
@@ -26,7 +26,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/gookit/color v1.5.3 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/lithammer/fuzzysearch v1.1.7 // indirect
+	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
