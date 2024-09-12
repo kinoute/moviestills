@@ -92,9 +92,9 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 	})
 
 	// Look for links on thumbnails that redirect to a "largest" version.
-	movieScraper.OnHTML("div.photo-inner dl.gallery-item a[href*=stills] img[src*=files]", func(e *colly.HTMLElement) {
+	movieScraper.OnHTML("div.photo-inner dl.gallery-item a[href*=stills] img[src*=uploads]", func(e *colly.HTMLElement) {
 
-		movieImageURL := e.Request.AbsoluteURL(e.Attr("src"))
+		movieImageURL := e.Request.AbsoluteURL(e.Attr("data-orig-file"))
 
 		// Use regexp to remove potential GET parameters from the URL
 		// regarding the resolution of the displayed image.

@@ -24,7 +24,7 @@ func TestStillsFrmNormalMoviePage(t *testing.T) {
 	doc := utils.GetHTMLCode("https://stillsfrmfilms.wordpress.com/2012/09/17/25th-hour/")
 
 	// We should find many links to high-quality images
-	numLargeImages := doc.Find("div.photo-inner dl.gallery-item a[href*=stills] img[src*=files]").Length()
+	numLargeImages := doc.Find("div.photo-inner dl.gallery-item a[href*=stills] img[src*=uploads]").Length()
 	if numLargeImages != 55 {
 		log.Fatalln("Number of links to large images is different than 55:", numLargeImages)
 	}
