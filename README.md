@@ -86,7 +86,7 @@ By default, the `docker run` command above will always `pull` before running to 
 Output of `./moviestills --help`:
 
 ```
-Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--timeout TIMEOUT] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--debug] [--no-colors] [--no-style] [--hash]
+Usage: moviestills [--website WEBSITE] [--list] [--parallel PARALLEL] [--delay DELAY] [--async] [--timeout TIMEOUT] [--proxy PROXY] [--cache-dir CACHE-DIR] [--data-dir DATA-DIR] [--hash] [--debug] [--no-colors] [--no-style]
 
 Options:
   --website WEBSITE, -w WEBSITE
@@ -99,14 +99,16 @@ Options:
   --async, -a            Enable asynchronus running jobs [default: false, env: ASYNC]
   --timeout TIMEOUT, -t TIMEOUT
                          Set the default request timeout for the scraper [default: 15s, env: TIMEOUT]
+  --proxy PROXY, -x PROXY
+                         The proxy URL to use for scraping [env: PROXY]
   --cache-dir CACHE-DIR, -c CACHE-DIR
                          Where to cache scraped websites pages [default: cache, env: CACHE_DIR]
   --data-dir DATA-DIR, -f DATA-DIR
                          Where to store movie snapshots [default: data, env: DATA_DIR]
+  --hash                 Hash image filenames with md5 [default: false, env: HASH]
   --debug, -d            Set Log Level to Debug to see everything [default: false, env: DEBUG]
   --no-colors            Disable colors from output [default: false, env: NO_COLORS]
   --no-style             Disable styling and colors entirely from output [default: false, env: NO_STYLE]
-  --hash                 Hash image filenames with md5 [default: false, env: HASH]
   --help, -h             display this help and exit
   --version              display version and exit
 ```
@@ -200,6 +202,10 @@ data # where to store movie snapshots
 You can change the default `data` folder with the `—data-dir` CLI argument or the `DATA_DIR` environment variable.
 
 If you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* `data` folder. Again, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
+
+#### Proxies
+
+You can set up a proxy URL to use for scraping using the `--proxy` CLI agument or the `PROXY` environment variable. At the moment, you can set only one proxy but the app might support multiple proxies in a round robin fashion later.
 
 #### Hash filenames
 

@@ -107,6 +107,13 @@ func main() {
 		colly.CacheDir(options.CacheDir),
 	)
 
+	// Set up a proxy
+	if options.Proxy != "" {
+		if err := scraper.SetProxy(options.Proxy); err != nil {
+			log.Error.Println("Could not set proxy", log.White(options.Proxy), log.Red(err))
+		}
+	}
+
 	// Set request timeout
 	scraper.SetRequestTimeout(options.TimeOut)
 
