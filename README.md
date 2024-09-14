@@ -176,6 +176,10 @@ docker run \
 
 With Docker, settings can also be set with environment variables instead of CLI arguments with the `—env` or `-e` flag.
 
+### Proxies
+
+You can set up a proxy URL to use for scraping using the `--proxy` CLI agument or the `PROXY` environment variable. At the moment, you can set only one proxy but the app might support multiple proxies in a round robin fashion later.
+
 ### Cache
 
 By default, every scraped page will be cached in the `cache` folder. You can change the name or path to the folder  through the options with `—cache-dir` or the `CACHE_DIR` environment variable. This is an important folder as it stores everything that was scraped.
@@ -202,10 +206,6 @@ data # where to store movie snapshots
 You can change the default `data` folder with the `—data-dir` CLI argument or the `DATA_DIR` environment variable.
 
 If you use our Docker image to run `moviestills`, don't forget to change the volume path in case you edited the *internal* `data` folder. Again, you should not even bother editing the *internal* `data` folder's path or name anyway as you have volumes to store and get access to these files on the host machine.
-
-#### Proxies
-
-You can set up a proxy URL to use for scraping using the `--proxy` CLI agument or the `PROXY` environment variable. At the moment, you can set only one proxy but the app might support multiple proxies in a round robin fashion later.
 
 #### Hash filenames
 
