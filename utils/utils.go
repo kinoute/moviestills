@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -123,7 +122,7 @@ func SaveImage(moviePath, movieName, rawFileName string, body []byte, toHash boo
 
 	// Don't save again it we already downloaded it
 	if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
-		if err = ioutil.WriteFile(outputImgPath, body, 0644); err != nil {
+		if err = os.WriteFile(outputImgPath, body, 0644); err != nil {
 			return err
 		}
 	}
