@@ -111,8 +111,6 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
-		// In case we enabled asynchronous jobs
-		movieScraper.Wait()
 	})
 
 	// Go through each link to imgur found on the movie page
@@ -249,8 +247,11 @@ func BlusScraper(scraper **colly.Collector, options *config.Options) {
 		log.Error.Println("Can't visit index page", log.White(BlusURL), log.Red(err))
 	}
 
-	// In case we enabled asynchronous jobs
-	(*scraper).Wait()
+	// Ensure that all requests are completed before exiting
+	if (*scraper).Async {
+		(*scraper).Wait()
+		movieScraper.Wait()
+	}
 
 }
 

@@ -83,8 +83,6 @@ func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) 
 			log.Error.Println("Can't visit movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
-		// In case we enabled asynchronous jobs
-		movieScraper.Wait()
 	})
 
 	// Look for links on thumbnails that redirects to a "largest" version.
@@ -126,8 +124,12 @@ func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) 
 		log.Error.Println("Can't visit index page", log.White(HighDefDiscNewsURL), ":", log.Red(err))
 	}
 
-	// In case we enabled asynchronous jobs
-	(*scraper).Wait()
+	// Ensure that all requests are completed before exiting
+	if (*scraper).Async {
+		(*scraper).Wait()
+		movieScraper.Wait()
+	}
+
 }
 
 // Isolate the movie's title by getting rid of various words on the right.

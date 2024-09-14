@@ -87,8 +87,6 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
 		}
 
-		// In case we enabled asynchronous jobs
-		movieScraper.Wait()
 	})
 
 	// Look for links on thumbnails that redirect to a "largest" version.
@@ -136,6 +134,10 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 		log.Error.Println("Can't visit index page", log.White(StillsFrmFilmsURL), ":", log.Red(err))
 	}
 
-	// In case we enabled asynchronous jobs
-	(*scraper).Wait()
+	// Ensure that all requests are completed before exiting
+	if (*scraper).Async {
+		(*scraper).Wait()
+		movieScraper.Wait()
+	}
+
 }
