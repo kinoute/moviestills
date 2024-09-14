@@ -6,8 +6,10 @@ import (
 	"moviestills/utils"
 	"moviestills/websites"
 	"os"
+	"os/signal"
 	"reflect"
 	"strings"
+	"syscall"
 
 	"github.com/alexflint/go-arg"
 	"github.com/gocolly/colly/v2"
@@ -15,10 +17,27 @@ import (
 	log "github.com/pterm/pterm"
 )
 
+// Signal handling function
+func handleShutdown() {
+	sigChan := make(chan os.Signal, 1)
+
+	// Listen for SIGINT (Ctrl+C) and SIGTERM (termination)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		<-sigChan
+		log.Info.Println("Shutting down...")
+		os.Exit(130)
+	}()
+}
+
 func main() {
 
 	// Start by cleaning the Terminal Screen
 	clearScreen()
+
+	// Stop program when user is pressing CTRL+C
+	handleShutdown()
 
 	// Implemented scrapers as today
 	sites := map[string]func(**colly.Collector, *config.Options){
