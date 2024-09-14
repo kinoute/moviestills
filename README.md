@@ -239,7 +239,7 @@ As today, scrapers were implemented for the following websites in `moviestills`:
 
 ### Clone the repo
 
-If you already have Go installed, you can simply clone the repo and run the application from the folder:
+If you already have Go installed – 1.22+ supported –, you can simply clone the repo and run the application from the folder:
 
 ```bash
 # clone the repo

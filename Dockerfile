@@ -1,11 +1,11 @@
 # base stage
-FROM golang:1.18.10-alpine3.17 as base
+FROM golang:1.23.1-alpine3.19 as base
 
 RUN apk update && \
     apk --no-cache add \
-    ca-certificates~=20220614 \
-    gcc~=12.2.1_git20220924 \
-    musl-dev~=1.2.3
+    ca-certificates~=20240226-r0 \
+    gcc~=13.2.1_git20231014-r0 \
+    musl-dev~=1.2.4_git20230717-r4
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ FROM base as builder
 RUN GOOS=linux go build -ldflags "-s -w"
 
 # final stage to serve binary
-FROM alpine:3.17.0
+FROM alpine:3.19
 
 WORKDIR /app
 
