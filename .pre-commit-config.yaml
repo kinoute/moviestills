@@ -1,7 +1,7 @@
 # linting golang/formatting
 repos:
-  - repo: git://github.com/dnephin/pre-commit-golang
-    rev: v0.4.0
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
     hooks:
       - id: go-fmt
       - id: go-vet
@@ -10,6 +10,6 @@ repos:
 
   # linting dockerfiles
   - repo: https://github.com/AleksaC/hadolint-py
-    rev: v1.19.0
+    rev: v2.12.1b3
     hooks:
       - id: hadolint
