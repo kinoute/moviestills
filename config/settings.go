@@ -6,7 +6,7 @@ import "time"
 type Options struct {
 	Website      string        `arg:"-w, --website,env:WEBSITE" help:"Website to scrap movie stills on"`
 	ListScrapers bool          `arg:"-l, --list,env:LIST" help:"List all available scrapers implemented" default:"false"`
-	Parallel     int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"2"`
+	Parallel     int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"5"`
 	RandomDelay  time.Duration `arg:"-r, --delay,env:RANDOM_DELAY" help:"Add some random delay between requests" default:"0s"`
 	Async        bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running jobs" default:"false"`
 	TimeOut      time.Duration `arg:"-t, --timeout,env:TIMEOUT" help:"Set the default request timeout for the scraper" default:"15s"`
