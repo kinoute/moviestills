@@ -17,20 +17,6 @@ import (
 	log "github.com/pterm/pterm"
 )
 
-// Signal handling function
-func handleShutdown() {
-	sigChan := make(chan os.Signal, 1)
-
-	// Listen for SIGINT (Ctrl+C) and SIGTERM (termination)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-
-	go func() {
-		<-sigChan
-		log.Info.Println("Shutting down...")
-		os.Exit(130)
-	}()
-}
-
 func main() {
 
 	// Start by cleaning the Terminal Screen
@@ -176,6 +162,20 @@ func main() {
 // Clear Terminal Screen
 func clearScreen() {
 	print("\033[H\033[2J")
+}
+
+// Signal handling function
+func handleShutdown() {
+	sigChan := make(chan os.Signal, 1)
+
+	// Listen for SIGINT (Ctrl+C) and SIGTERM (termination)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		<-sigChan
+		log.Info.Println("Shutting down...")
+		os.Exit(130)
+	}()
 }
 
 // Print configuration as a bullet list. Most

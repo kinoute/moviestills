@@ -37,6 +37,10 @@ func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
+	if err := (*scraper).Visit(EvanERichardsURL); err != nil {
+		log.Error.Println("Can't visit index page", log.White(BluBeaverURL), ":", log.Red(err))
+	}
+
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
 		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
@@ -127,10 +131,6 @@ func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
 		}
 	})
-
-	if err := (*scraper).Visit(EvanERichardsURL); err != nil {
-		log.Error.Println("Can't visit index page", log.White(BluBeaverURL), ":", log.Red(err))
-	}
 
 	// Ensure that all requests are completed before exiting
 	if (*scraper).Async {

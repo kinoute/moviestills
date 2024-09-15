@@ -36,6 +36,10 @@ func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) 
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
+	if err := (*scraper).Visit(HighDefDiscNewsURL); err != nil {
+		log.Error.Println("Can't visit index page", log.White(HighDefDiscNewsURL), ":", log.Red(err))
+	}
+
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
 		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
@@ -119,10 +123,6 @@ func HighDefDiscNewsScraper(scraper **colly.Collector, options *config.Options) 
 		}
 
 	})
-
-	if err := (*scraper).Visit(HighDefDiscNewsURL); err != nil {
-		log.Error.Println("Can't visit index page", log.White(HighDefDiscNewsURL), ":", log.Red(err))
-	}
 
 	// Ensure that all requests are completed before exiting
 	if (*scraper).Async {
