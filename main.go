@@ -7,6 +7,7 @@ import (
 	"moviestills/websites"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"syscall"
@@ -43,24 +44,11 @@ func main() {
 	var options config.Options
 	arg.MustParse(&options)
 
-	// We override the default prefix label for "info" messages to
-	// align it perfectly on the Terminal with other labels. Otherwise,
-	// since "INFO" is shorter than the other labels, the width
-	// of the different labels is not the same.
-	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
-
-	// Disable style and colors for output
-	if options.NoStyle {
-		log.DisableStyling()
-	}
-
-	// Disable colors only for output
-	if options.NoColors {
-		log.DisableColor()
-	}
-
 	// Interface of the app
 	log.DefaultHeader.Println("Movie Stills", config.VERSION)
+
+	// Adjust logging styles
+	setupLogging(&options)
 
 	// Display available scrapers implemented
 	if options.ListScrapers {
@@ -68,114 +56,122 @@ func main() {
 		return
 	}
 
-	log.DefaultSection.Println("Configuration")
-	printConfiguration(&options)
-
 	// Check presence of website argument
 	if options.Website == "" {
 		log.Error.Println("A website must be set through arguments.")
+		listAvailableScrapers(sites)
 		os.Exit(1)
 	}
+
+	website := strings.ToLower(options.Website)
 
 	// Verify if we have a scrapper for the given website.
 	// If we do, "site_func" will now contain a function listed in
 	// the sites map that matches a module for this specific
 	// website stored in the "websites" folder.
-	siteFunc, scraperExists := sites[strings.ToLower(options.Website)]
-	if !scraperExists {
-		log.Error.Println("We don't have a scraper for this website.")
-		// List available scrapers
+	if _, exists := sites[website]; !exists {
+		log.Error.Println("We don't have a scraper for:", log.White(website))
 		listAvailableScrapers(sites)
 		os.Exit(1)
 	}
 
-	// If we're here, it means we have a valid scraper for a valid website!
+	log.DefaultSection.Println("Configuration")
+	printConfiguration(&options)
 
-	// Create the "cache" directory.
-	// This folder stores the scraped websites pages.
-	// If we can't create it, stop right there.
+	// Create the necessary directories (cache and data)
+	setupDirectories(&options)
+
+	// Create and configure scraper for each website
+	scraper := colly.NewCollector(
+		colly.CacheDir(filepath.Join(options.CacheDir, website)),
+	)
+
+	// Set up scraper settings
+	configureScraper(&scraper, &options)
+
+	// Run the scraper for the current website
+	siteFunc := sites[website]
+	siteFunc(&scraper, &options)
+
+	log.Info.Println("Finished scraping", log.White(website))
+
+}
+
+func clearScreen() {
+	print("\033[H\033[2J")
+}
+
+func handleShutdown() {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-sigChan
+		log.Info.Println("Shutting down...")
+		os.Exit(130)
+	}()
+}
+
+func setupLogging(options *config.Options) {
+	// Adjust the logging prefix
+	log.Info = *log.Info.WithPrefix(log.Prefix{Text: " INFOS ", Style: log.Info.Prefix.Style})
+
+	// Disable styles and colors based on options
+	if options.NoStyle {
+		log.DisableStyling()
+	}
+	if options.NoColors {
+		log.DisableColor()
+	}
+}
+
+func setupDirectories(options *config.Options) {
+	// Create the cache directory
 	if _, err := utils.CreateFolder(options.CacheDir); err != nil {
 		log.Error.Println("The cache directory", log.White(options.CacheDir), "can't be created:", log.Red(err))
 		os.Exit(1)
 	}
 
-	// Create the "data" directory.
-	// This folder stores the movie snapshots.
-	// If we can't create it, stop right there.
+	// Create the data directory
 	if _, err := utils.CreateFolder(options.DataDir); err != nil {
 		log.Error.Println("The data directory", log.White(options.DataDir), "can't be created:", log.Red(err))
 		os.Exit(1)
 	}
+}
 
-	// Instantiate main scraper
-	scraper := colly.NewCollector(
-		colly.CacheDir(options.CacheDir),
-	)
-
+func configureScraper(scraper **colly.Collector, options *config.Options) {
 	// Set up a proxy
 	if options.Proxy != "" {
-		if err := scraper.SetProxy(options.Proxy); err != nil {
+		if err := (*scraper).SetProxy(options.Proxy); err != nil {
 			log.Error.Println("Could not set proxy", log.White(options.Proxy), log.Red(err))
 		}
 	}
 
 	// Set request timeout
-	scraper.SetRequestTimeout(options.TimeOut)
+	(*scraper).SetRequestTimeout(options.TimeOut)
 
 	// Enable asynchronous jobs if asked
 	if options.Async {
-		scraper.Async = true
+		(*scraper).Async = true
 	}
 
 	// Enable Debugging level if asked through the CLI
 	if options.Debug {
 		log.EnableDebugMessages()
-		scraper.SetDebugger(&debug.PTermDebugger{})
+		(*scraper).SetDebugger(&debug.PTermDebugger{})
 	}
 
 	// Use random user agent and referer to avoid getting banned
-	extensions.RandomUserAgent(scraper)
-	extensions.Referer(scraper)
+	extensions.RandomUserAgent((*scraper))
+	extensions.Referer((*scraper))
 
 	// Limit parallelism and add random delay to avoid getting IP banned
-	if err := scraper.Limit(&colly.LimitRule{
+	if err := (*scraper).Limit(&colly.LimitRule{
 		DomainGlob:  "*",
 		Parallelism: options.Parallel,
 		RandomDelay: 1 * options.RandomDelay,
 	}); err != nil {
 		log.Warning.Println("Can't change scraper limit options:", log.Red(err))
 	}
-
-	log.DefaultSection.Println("Scraping")
-	log.Info.Println("Starting", options.Website, "Scraper")
-
-	// Here we call the website module depending on the website provided
-	// in the CLI by the user.
-	// This will call a file/module/func made specifically to scrap this website.
-	// All available scrapers are stored in the "websites" folder.
-	siteFunc(&scraper, &options)
-
-	log.Info.Println("Finished Scraping", options.Website, "!")
-
-}
-
-// Clear Terminal Screen
-func clearScreen() {
-	print("\033[H\033[2J")
-}
-
-// Signal handling function
-func handleShutdown() {
-	sigChan := make(chan os.Signal, 1)
-
-	// Listen for SIGINT (Ctrl+C) and SIGTERM (termination)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-
-	go func() {
-		<-sigChan
-		log.Info.Println("Shutting down...")
-		os.Exit(130)
-	}()
 }
 
 // Print configuration as a bullet list. Most

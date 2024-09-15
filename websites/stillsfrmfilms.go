@@ -38,10 +38,6 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 	movieScraper := (*scraper).Clone()
 	movieScraper.AllowURLRevisit = false
 
-	if err := (*scraper).Visit(StillsFrmFilmsURL); err != nil {
-		log.Error.Println("Can't visit index page", log.White(StillsFrmFilmsURL), ":", log.Red(err))
-	}
-
 	// Print error just in case
 	(*scraper).OnError(func(r *colly.Response, err error) {
 		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
@@ -130,10 +126,11 @@ func StillsFrmFilmsScraper(scraper **colly.Collector, options *config.Options) {
 
 	})
 
-	// Ensure that all requests are completed before exiting
-	if (*scraper).Async {
-		(*scraper).Wait()
-		movieScraper.Wait()
+	if err := (*scraper).Visit(StillsFrmFilmsURL); err != nil {
+		log.Error.Println("Can't visit index page", log.White(StillsFrmFilmsURL), ":", log.Red(err))
 	}
 
+	// Ensure that all requests are completed before exiting
+	(*scraper).Wait()
+	movieScraper.Wait()
 }
