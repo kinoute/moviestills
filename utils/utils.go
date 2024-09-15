@@ -62,10 +62,8 @@ func Normalize(str string) (string, error) {
 // Create (nested) folder if it doesn't exist yet
 func CreateFolder(folder ...string) (string, error) {
 	path := filepath.Join(folder...)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err = os.MkdirAll(path, os.ModePerm); err != nil {
-			return "", err
-		}
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		return "", err
 	}
 	return path, nil
 }
@@ -119,6 +117,11 @@ func SaveImage(moviePath, movieName, rawFileName string, body []byte, toHash boo
 	}
 
 	outputImgPath := moviePath + "/" + fileName
+
+	// Create nested folders, if needed
+	if _, err := CreateFolder(moviePath); err != nil {
+		return err
+	}
 
 	// Don't save again it we already downloaded it
 	if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {

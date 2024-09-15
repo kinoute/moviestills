@@ -3,6 +3,7 @@ package websites
 import (
 	"moviestills/config"
 	"moviestills/utils"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -82,13 +83,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			return
 		}
 
-		// Create folder to save images in case it doesn't exist
-		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
-		if err != nil {
-			log.Error.Println("Can't create movie folder for:", log.White(movieName), log.Red(err))
-			return
-		}
-
+		moviePath := filepath.Join(options.DataDir, options.Website, movieName)
 		log.Info.Println("Found movie page for:", log.White(movieName))
 
 		// Pass the movie's name and path to the next request context

@@ -3,6 +3,7 @@ package websites
 import (
 	"moviestills/config"
 	"moviestills/utils"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -114,14 +115,8 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			return
 		}
 
+		moviePath := filepath.Join(options.DataDir, options.Website, movieName)
 		log.Debug.Println("Found movie link for", log.White(movieName))
-
-		// Create folder to save images in case it doesn't exist yet
-		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, movieName)
-		if err != nil {
-			log.Error.Println("Can't create movie folder for:", log.White(movieName), log.Red(err))
-			return
-		}
 
 		// Pass the movie path to the next request context
 		// in order to save the images in the correct folder.
@@ -165,6 +160,8 @@ func DVDBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			":not([src*='bitrate' i])"+
 			":not([src*='bitgraph' i])"+
 			":not([src$='gif' i])"+
+			":not([src$='click.jpg' i])"+
+			":not([src$='large_apocalypse.jpg' i])"+
 			":not([src*='sub' i])"+
 			":not([src*='daggers' i])"+
 			":not([src*='poster' i])"+

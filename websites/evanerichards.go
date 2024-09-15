@@ -3,6 +3,7 @@ package websites
 import (
 	"moviestills/config"
 	"moviestills/utils"
+	"path/filepath"
 	"strings"
 
 	log "github.com/pterm/pterm"
@@ -75,12 +76,7 @@ func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
 
 		log.Debug.Println("Found movie page link", log.White(movieURL))
 
-		// Create folder to save images in case it doesn't exist
-		moviePath, err := utils.CreateFolder(options.DataDir, options.Website, title)
-		if err != nil {
-			log.Error.Println("Can't create movie folder for:", log.White(title), log.Red(err))
-			return
-		}
+		moviePath := filepath.Join(options.DataDir, options.Website, title)
 
 		log.Info.Println("Found movie page for:", log.White(title))
 
