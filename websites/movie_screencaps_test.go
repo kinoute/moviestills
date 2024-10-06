@@ -25,7 +25,7 @@ func TestMovieScreencapsNormalMoviePage(t *testing.T) {
 	doc := utils.GetHTMLCode("https://movie-screencaps.com/eagle-eye-2008/")
 
 	// We should find many links to high-quality images
-	numLargeImages := doc.Find("section.entry-content a[href*=wp][href*=caps]").Length()
+	numLargeImages := doc.Find("section.entry-content a[href*=screencaps][href$=jpg]").Length()
 	if numLargeImages != 180 {
 		log.Fatalln("Number of links to large images is different than 180:", numLargeImages)
 	}

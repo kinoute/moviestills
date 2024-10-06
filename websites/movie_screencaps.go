@@ -29,6 +29,7 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 		"i2.wp.com",
 		"i3.wp.com",
 		"wp.com",
+		"img.screencaps.us",
 	}
 
 	// The index page might have been updated so
@@ -123,6 +124,19 @@ func ScreenCapsScraper(scraper **colly.Collector, options *config.Options) {
 	// Therefore, we added :nth-of-type(30n) to the CSS selector to only
 	// download 1 shot every 30 shots. Remove it if you want to download everything.
 	movieScraper.OnHTML("section.entry-content a[href*=wp][href*=caps]:nth-of-type(30n)", func(e *colly.HTMLElement) {
+		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
+
+		// We're getting weird filenames from Wordpress with "strip=all" at the end.
+		// We might need to remove some suffixes.
+		movieImageURL = utils.RemoveURLParams(movieImageURL)
+
+		log.Debug.Println("Found linked image", log.White(movieImageURL))
+		if err := e.Request.Visit(movieImageURL); err != nil {
+			log.Error.Println("Can't request linked image", log.White(movieImageURL), log.Red(err))
+		}
+	})
+
+	movieScraper.OnHTML("section.entry-content a[href*=screencaps][href$=jpg]:nth-of-type(30n)", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
 
 		// We're getting weird filenames from Wordpress with "strip=all" at the end.
