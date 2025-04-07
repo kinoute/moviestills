@@ -8,7 +8,7 @@ require (
 	github.com/alexflint/go-arg v1.5.1
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/pterm/pterm v0.12.80
-	golang.org/x/text v0.23.0
+	golang.org/x/text v0.24.0
 )
 
 require (
