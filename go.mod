@@ -9,7 +9,7 @@ require (
 	github.com/alexflint/go-arg v1.6.0
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/pterm/pterm v0.12.81
-	golang.org/x/text v0.27.0
+	golang.org/x/text v0.28.0
 )
 
 require (
