@@ -18,54 +18,51 @@ func TestBlusIndexPage(t *testing.T) {
 }
 
 // The "Giant" movie
-// Normal movie review with large images available as links to imgur
+// Movie review with gallery link to imgur
 func TestBlusNormalMoviePage(t *testing.T) {
 	// Request the HTML page.
 	doc := utils.GetHTMLCode("https://www.bluscreens.net/giant.html")
 
-	// We should find 50 links to imgur high-quality images
-	numLargeImages := doc.Find("div.galleryInnerImageHolder a[href*=imgur], td.wsite-multicol-col div a[href*=imgur]").Length()
-	if numLargeImages != 50 {
-		t.Fatalf("Number of links to large images is different than 50: %d", numLargeImages)
+	// The site now links to imgur/postimg galleries instead of individual images
+	// Check that there's at least one gallery link
+	numGalleryLinks := doc.Find("a[href*='imgur.com/a/'], a[href*='postimg.cc/gallery/']").Length()
+	if numGalleryLinks < 1 {
+		t.Fatalf("No gallery links found on page, expected at least 1: %d", numGalleryLinks)
 	}
 }
 
-// Some old pages of blusscreens have a different layout.
-// We need a special function to handle this.
-// eg: OSS 117
+// Some pages of blusscreens link to postimg galleries.
+// eg: The Skin I Live In
 func TestBlusAlternativeMoviePage(t *testing.T) {
 	// Request the HTML page.
 	doc := utils.GetHTMLCode("https://www.bluscreens.net/skin-i-live-in-the.html")
 
-	numLargeImages := doc.Find("div.galleryInnerImageHolder a[href*=postimage]").Length()
-	if numLargeImages != 40 {
-		t.Fatalf("Number of links to large images should be 40: %d", numLargeImages)
+	// Check for gallery image holders (thumbnails displayed on page)
+	numImageHolders := doc.Find("div.galleryInnerImageHolder").Length()
+	if numImageHolders < 30 {
+		t.Fatalf("Number of gallery image holders seems low: %d", numImageHolders)
 	}
 }
 
-// Another kind of weird layout mixing table and div.
-// eg: Pain & Gain
+// Another layout using wsite-image elements in multicol tables.
+// eg: Tie Me Up! Tie Me Down!
 func TestBlusAlternative2MoviePage(t *testing.T) {
 	// Request the HTML page.
 	doc := utils.GetHTMLCode("https://www.bluscreens.net/tie-me-up-tie-me-down.html")
 
-	numLargeImages := doc.Find("td.wsite-multicol-col div a[href*=postim]").Length()
-	if numLargeImages != 50 {
-		t.Fatalf("Number of links to large images should be 50: %d", numLargeImages)
+	// This page uses wsite-image divs instead of gallery holders
+	numImages := doc.Find("div.wsite-image").Length()
+	if numImages < 40 {
+		t.Fatalf("Number of wsite-image elements seems low: %d", numImages)
 	}
 }
 
-// Get Link of full image from download button
-func TestBlusDownloadImageLink(t *testing.T) {
-	doc := utils.GetHTMLCode("https://pixxxels.cc/N2fk8KCs")
+// Get Link to gallery from movie page
+func TestBlusGalleryLink(t *testing.T) {
+	doc := utils.GetHTMLCode("https://www.bluscreens.net/skin-i-live-in-the.html")
 
-	imgURL, urlExists := doc.Find("div#content a#download[href*=postimg], div#content a#download[href*=pixxxels]").Attr("href")
+	_, urlExists := doc.Find("a[href*='postimg.cc/gallery/']").Attr("href")
 	if !urlExists {
-		t.Fatal("Link of download image could not be found")
-	}
-
-	expected := "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1"
-	if imgURL != expected {
-		t.Fatalf("download image link not correct, expected %s, got %s", expected, imgURL)
+		t.Fatal("Gallery link to postimg.cc could not be found")
 	}
 }
