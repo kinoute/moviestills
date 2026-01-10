@@ -6,15 +6,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	log "github.com/pterm/pterm"
-
 	"github.com/gocolly/colly/v2/debug"
+	"github.com/pterm/pterm"
 )
 
-// PTermDebugger a a debugger which prints log messages to the STDERR
+// PTermDebugger is a debugger which prints log messages to the STDERR
 // with the PTerm design pattern.
 type PTermDebugger struct {
-	// Output is the log destination, anything can be used which implements them
+	// Output is the log destination, anything can be used which implements the
 	// io.Writer interface. Leave it blank to use STDERR
 	Output io.Writer
 	// Prefix appears at the beginning of each generated log line
@@ -24,7 +23,7 @@ type PTermDebugger struct {
 	start   time.Time
 }
 
-// Init initializes the pTermDebugger
+// Init initializes the PTermDebugger
 func (l *PTermDebugger) Init() error {
 	l.counter = 0
 	l.start = time.Now()
@@ -37,5 +36,5 @@ func (l *PTermDebugger) Init() error {
 // Event receives Collector events and prints them to STDERR
 func (l *PTermDebugger) Event(e *debug.Event) {
 	i := atomic.AddInt32(&l.counter, 1)
-	log.Debug.Printf("[%06d] %d [%6d - %s] %q (%s)\n", i, e.CollectorID, e.RequestID, e.Type, e.Values, time.Since(l.start))
+	pterm.Debug.Printf("[%06d] %d [%6d - %s] %q (%s)\n", i, e.CollectorID, e.RequestID, e.Type, e.Values, time.Since(l.start))
 }

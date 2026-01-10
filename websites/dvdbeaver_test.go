@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"strconv"
 	"testing"
@@ -15,7 +14,7 @@ func TestMainDVDBeaverPage(t *testing.T) {
 
 	numPages := doc.Find("a[href*='listing' i]").Length()
 	if numPages != 27 {
-		log.Fatalln("Number of movie lists pages is bad", numPages)
+		t.Fatalf("Number of movie lists pages is bad: %d", numPages)
 	}
 }
 
@@ -27,7 +26,7 @@ func TestDVDBeaverIndexNumberPage(t *testing.T) {
 	// Number of BD reviews listed on the index page
 	numMovies := doc.Find("td p a[href*='film' i]").Length()
 	if numMovies < 120 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -40,10 +39,10 @@ func TestDVDBeaverMoviePageWithOnlyInlineImages(t *testing.T) {
 	// No large links found, should return zero
 	numLargeImages := doc.Find("a[href*='large' i]:not([href*='subs' i])").Length()
 	if numLargeImages != 0 {
-		log.Fatalln("Number of large images should be zero:", numLargeImages)
+		t.Fatalf("Number of large images should be zero: %d", numLargeImages)
 	}
 
-	// Only inline images available, should have 12 of them
+	// Only inline images available, should have 7 of them
 	numInlineImgs := 0
 	doc.Find(":not(a) >" +
 		"img:not([src*='banner' i])" +
@@ -62,13 +61,11 @@ func TestDVDBeaverMoviePageWithOnlyInlineImages(t *testing.T) {
 		width, _ := s.Attr("width")
 		widthInt, _ := strconv.Atoi(width)
 		if heightInt >= 265 && widthInt >= 500 {
-			numInlineImgs += 1
+			numInlineImgs++
 		}
-
 	})
 
 	if numInlineImgs != 7 {
-		log.Fatalln("Valid inline images should be 7, but found", numInlineImgs)
+		t.Fatalf("Valid inline images should be 7, but found %d", numInlineImgs)
 	}
-
 }

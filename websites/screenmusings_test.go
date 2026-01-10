@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestScreenMusingsIndexPage(t *testing.T) {
 	// Number of entries
 	numMovies := doc.Find("nav#movies ul li a[href*=dvd], nav#movies ul li a[href*=blu]").Length()
 	if numMovies < 200 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -26,13 +25,12 @@ func TestScreenMusingsMoviePage(t *testing.T) {
 
 	mostLink, exists := doc.Find("ul#gallery-nav-top li:nth-last-child(2) a[href*=most]").Attr("href")
 	if !exists {
-		log.Fatalln("Most viewed page link can't be found")
+		t.Fatal("Most viewed page link can't be found")
 	}
 
 	if mostLink != "most-viewed-stills.htm" {
-		log.Fatalln("The most viewed page is not good", mostLink)
+		t.Fatalf("The most viewed page is not good: %s", mostLink)
 	}
-
 }
 
 // Annihilation
@@ -43,7 +41,6 @@ func TestScreenMusingsMovieMostViewedPage(t *testing.T) {
 	// We should find many links to high-quality images
 	numLargeImages := doc.Find("div#thumbnails div.thumb img[src*=thumb]").Length()
 	if numLargeImages != 296 {
-		log.Fatalln("Number of links to large images is different than 296:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 296: %d", numLargeImages)
 	}
-
 }

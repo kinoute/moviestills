@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestHighDefDiscNewsIndexPage(t *testing.T) {
 	// Number of entries
 	numMovies := doc.Find("div#mcTagMap ul.links a[href*=high]").Length()
 	if numMovies < 200 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -26,7 +25,7 @@ func TestHighDefDiscNewsNormalMoviePage(t *testing.T) {
 	// We should find many links to high-quality images
 	numLargeImages := doc.Find("div.gallery dl.gallery-item a[href*=high]").Length()
 	if numLargeImages != 25 {
-		log.Fatalln("Number of links to large images is different than 25:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 25: %d", numLargeImages)
 	}
 }
 

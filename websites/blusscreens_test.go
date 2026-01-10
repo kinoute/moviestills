@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestBlusIndexPage(t *testing.T) {
 	// Number of BD reviews listed on the index page
 	numMovies := doc.Find("h2.wsite-content-title a[href*=html]").Length()
 	if numMovies < 400 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -27,9 +26,8 @@ func TestBlusNormalMoviePage(t *testing.T) {
 	// We should find 50 links to imgur high-quality images
 	numLargeImages := doc.Find("div.galleryInnerImageHolder a[href*=imgur], td.wsite-multicol-col div a[href*=imgur]").Length()
 	if numLargeImages != 50 {
-		log.Fatalln("Number of links to large images is different than 50:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 50: %d", numLargeImages)
 	}
-
 }
 
 // Some old pages of blusscreens have a different layout.
@@ -41,9 +39,8 @@ func TestBlusAlternativeMoviePage(t *testing.T) {
 
 	numLargeImages := doc.Find("div.galleryInnerImageHolder a[href*=postimage]").Length()
 	if numLargeImages != 40 {
-		log.Fatalln("Number of links to large images should be 40:", numLargeImages)
+		t.Fatalf("Number of links to large images should be 40: %d", numLargeImages)
 	}
-
 }
 
 // Another kind of weird layout mixing table and div.
@@ -54,9 +51,8 @@ func TestBlusAlternative2MoviePage(t *testing.T) {
 
 	numLargeImages := doc.Find("td.wsite-multicol-col div a[href*=postim]").Length()
 	if numLargeImages != 50 {
-		log.Fatalln("Number of links to large images should be 50:", numLargeImages)
+		t.Fatalf("Number of links to large images should be 50: %d", numLargeImages)
 	}
-
 }
 
 // Get Link of full image from download button
@@ -65,10 +61,11 @@ func TestBlusDownloadImageLink(t *testing.T) {
 
 	imgURL, urlExists := doc.Find("div#content a#download[href*=postimg], div#content a#download[href*=pixxxels]").Attr("href")
 	if !urlExists {
-		log.Fatalln("Link of download image could not be found")
+		t.Fatal("Link of download image could not be found")
 	}
 
-	if imgURL != "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1" {
-		log.Fatalln("download image link not correct, expected", "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1", "got", imgURL)
+	expected := "https://i.postimg.cc/Q8y2cJC0/59.png?dl=1"
+	if imgURL != expected {
+		t.Fatalf("download image link not correct, expected %s, got %s", expected, imgURL)
 	}
 }

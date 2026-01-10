@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestEvanIndexPage(t *testing.T) {
 	// Number of entries (including TV series etc)
 	numMovies := doc.Find("tbody tr.pp-table-row").Length()
 	if numMovies < 250 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -26,7 +25,6 @@ func TestEvanNormalMoviePage(t *testing.T) {
 	// We should find many links to high-quality images
 	numLargeImages := doc.Find("div.elementor-widget-container div.ngg-gallery-thumbnail a[class*=shutter]").Length()
 	if numLargeImages != 351 {
-		log.Fatalln("Number of links to large images is different than 351:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 351: %d", numLargeImages)
 	}
-
 }

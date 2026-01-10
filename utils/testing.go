@@ -8,13 +8,12 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// GetHTMLCode is a Wrapper to download and get HTML code
+// GetHTMLCode is a wrapper to download and get HTML code
 // from a URL.
 func GetHTMLCode(url string) *goquery.Document {
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			MaxVersion: tls.VersionTLS12,
+			MinVersion: tls.VersionTLS12,
 		},
 	}
 	client := &http.Client{

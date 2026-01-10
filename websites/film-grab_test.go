@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestFilmGrabIndexPage(t *testing.T) {
 	// Number of entries
 	numMovies := doc.Find("div#primary a.title[href*=film]").Length()
 	if numMovies < 2500 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -26,7 +25,6 @@ func TestFilmGrabNormalMoviePage(t *testing.T) {
 	// We should find many links to high-quality images
 	numLargeImages := doc.Find("div.bwg_container div.bwg-item a.bwg-a[href*=film]").Length()
 	if numLargeImages != 65 {
-		log.Fatalln("Number of links to large images is different than 65:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 65: %d", numLargeImages)
 	}
-
 }

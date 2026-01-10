@@ -8,20 +8,33 @@ func TestNormalize(t *testing.T) {
 	cases := []struct {
 		in       string
 		expected string
+		wantErr  bool
 	}{
-		{"Les misérables", "Les miserables"},
-		{" Kagerô-za", "Kagero-za"},
-		{" Méliès: Fairy Tales in Color", "Melies：Fairy Tales in Color"},
-		{" Love (2D  +    3D) ", "Love (2D + 3D)"},
-		{" F/X: The Usual      Suspects  ", "F X：The Usual Suspects"},
-		{"Another / Movie /      Test", "Another Movie Test"},
-		{"", ""},
+		{"Les misérables", "Les miserables", false},
+		{" Kagerô-za", "Kagero-za", false},
+		{" Méliès: Fairy Tales in Color", "Melies：Fairy Tales in Color", false},
+		{" Love (2D  +    3D) ", "Love (2D + 3D)", false},
+		{" F/X: The Usual      Suspects  ", "F X：The Usual Suspects", false},
+		{"Another / Movie /      Test", "Another Movie Test", false},
+		{"", "", true},                    // Empty result error
+		{"../../../etc/passwd", "", true}, // Path traversal
+		{"movie/../secret", "", true},     // Path traversal
+		{"Normal..Movie", "", true},       // Contains ..
 	}
 
 	for _, c := range cases {
-		got, _ := Normalize(c.in)
-		if got != c.expected {
-			t.Errorf("Normalize(%q) == %q, expected %q", c.in, got, c.expected)
+		got, err := Normalize(c.in)
+		if c.wantErr {
+			if err == nil {
+				t.Errorf("Normalize(%q) expected error, got nil", c.in)
+			}
+		} else {
+			if err != nil {
+				t.Errorf("Normalize(%q) unexpected error: %v", c.in, err)
+			}
+			if got != c.expected {
+				t.Errorf("Normalize(%q) == %q, expected %q", c.in, got, c.expected)
+			}
 		}
 	}
 }
@@ -51,35 +64,34 @@ func TestRemoveURLParams(t *testing.T) {
 }
 
 func TestLimitLength(t *testing.T) {
-	type args struct {
-		s      string
-		length int
-	}
 	tests := []struct {
 		name     string
-		args     args
+		s        string
+		length   int
 		expected string
 	}{
 		{
-			name: "normal test",
-			args: args{
-				s:      "你好 hello",
-				length: 8,
-			},
+			name:     "normal test",
+			s:        "你好 hello",
+			length:   8,
 			expected: "你好 hello",
 		},
 		{
-			name: "truncated test",
-			args: args{
-				s:      "你好 hello",
-				length: 6,
-			},
+			name:     "truncated test",
+			s:        "你好 hello",
+			length:   6,
 			expected: "你好 ...",
+		},
+		{
+			name:     "unlimited",
+			s:        "any string",
+			length:   0,
+			expected: "any string",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := LimitLength(tt.args.s, tt.args.length); got != tt.expected {
+			if got := LimitLength(tt.s, tt.length); got != tt.expected {
 				t.Errorf("LimitLength() = %v, expected %v", got, tt.expected)
 			}
 		})
@@ -106,53 +118,25 @@ func TestRemoveDisallowedChars(t *testing.T) {
 }
 
 func TestCreateFolder(t *testing.T) {
-	type args struct {
-		moviePath string
-	}
 	cases := []struct {
-		name     string
-		args     args
-		expected string
+		name      string
+		moviePath string
+		wantErr   bool
 	}{
 		{
-			name: "wrong path to create folder",
-			args: args{
-				moviePath: "/....$x/dev/null/root/8 Mile$$$\\..111@:£*\n",
-			},
-			expected: "",
+			name:      "invalid path",
+			moviePath: "/....$x/dev/null/root/8 Mile$$$\\..111@:£*\n",
+			wantErr:   true,
 		},
 	}
 
 	for _, c := range cases {
-		got, _ := CreateFolder(c.args.moviePath)
-		// if got is nil, there was an error during creation of the folder
-		if got != c.expected {
-			t.Errorf("CreateFolder(%q) == %q, expected %q", c.args.moviePath, got, c.expected)
-		}
-	}
-}
-
-func TestMD5(t *testing.T) {
-	type args struct {
-		text string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		expected string
-	}{
-		{
-			name: "normal test",
-			args: args{
-				text: "123456",
-			},
-			expected: "e10adc3949ba59abbe56e057f20f883e",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := MD5(tt.args.text); got != tt.expected {
-				t.Errorf("MD5() = %v, expected %v", got, tt.expected)
+		t.Run(c.name, func(t *testing.T) {
+			got, err := CreateFolder(c.moviePath)
+			if c.wantErr {
+				if err == nil && got != "" {
+					t.Errorf("CreateFolder(%q) expected error or empty result, got %q", c.moviePath, got)
+				}
 			}
 		})
 	}

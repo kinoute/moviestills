@@ -4,11 +4,13 @@ import "time"
 
 // Options which can be set through the CLI or environment variables
 type Options struct {
-	Website      string        `arg:"-w, --website,env:WEBSITE" help:"Website to scrap movie stills on"`
+	Website      []string      `arg:"-w, --website,separate,env:WEBSITE" help:"Website(s) to scrape movie stills from (can be specified multiple times)"`
+	All          bool          `arg:"-A, --all,env:ALL" help:"Scrape all available websites" default:"false"`
 	ListScrapers bool          `arg:"-l, --list,env:LIST" help:"List all available scrapers implemented" default:"false"`
 	Parallel     int           `arg:"-p, --parallel,env:PARALLEL" help:"Limit the maximum parallelism" default:"5"`
 	RandomDelay  time.Duration `arg:"-r, --delay,env:RANDOM_DELAY" help:"Add some random delay between requests" default:"0s"`
-	Async        bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronus running jobs" default:"false"`
+	Async        bool          `arg:"-a, --async,env:ASYNC" help:"Enable asynchronous running jobs" default:"false"`
+	Sequential   bool          `arg:"-s, --sequential,env:SEQUENTIAL" help:"Run multiple websites sequentially instead of concurrently" default:"false"`
 	TimeOut      time.Duration `arg:"-t, --timeout,env:TIMEOUT" help:"Set the default request timeout for the scraper" default:"15s"`
 	Proxy        string        `arg:"-x, --proxy,env:PROXY" help:"The proxy URL to use for scraping"`
 	CacheDir     string        `arg:"-c, --cache-dir,env:CACHE_DIR" help:"Where to cache scraped websites pages" default:"cache"`

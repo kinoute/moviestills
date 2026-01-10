@@ -2,13 +2,12 @@ package websites
 
 import (
 	"moviestills/config"
+	"moviestills/scraper"
 	"moviestills/utils"
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/gocolly/colly/v2"
-	log "github.com/pterm/pterm"
+	"github.com/pterm/pterm"
 )
 
 // BluBeaverURL is the webpage stores a list of links to movie reviews of Blu-rays
@@ -16,88 +15,64 @@ const BluBeaverURL string = "http://www.dvdbeaver.com/blu-ray.htm"
 
 // BluBeaverScraper is the main function that handles all the scraping logic
 // for this website.
-func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
+func BluBeaverScraper(c *colly.Collector, options *config.Options, stats *scraper.Stats) {
+	log := scraper.NewLogger("blubeaver")
 
-	// Change allowed domain for the main scraper.
-	// Since everything is served on the same domain,
-	// only one domain is really necessary.
-	(*scraper).AllowedDomains = []string{
-		"www.blubeaver.ca",
-		"www.dvdbeaver.com",
-		"dvdbeaver.com",
-		"DVDBeaver.com",
-		"www.DVDBeaver.com",
+	cfg := scraper.SiteConfig{
+		Name:     "blubeaver",
+		IndexURL: BluBeaverURL,
+		AllowedDomains: []string{
+			"www.blubeaver.ca",
+			"www.dvdbeaver.com",
+			"dvdbeaver.com",
+			"DVDBeaver.com",
+			"www.DVDBeaver.com",
+		},
+		DetectCharset: true,
 	}
 
-	// The index page might have been updated since last visit so
-	// we have to revisit it when restarting the scraper.
-	// It is a single page, it will not cost anything anyway.
-	(*scraper).AllowURLRevisit = true
+	// Setup the index scraper with common settings
+	scraper.SetupIndexScraper(c, cfg, log)
 
-	// BluBeaver pages have a weird charset.
-	// Colly can deal with this automatically
-	// and handle weird accents/characters better.
-	(*scraper).DetectCharset = true
+	// Create and setup the movie scraper
+	movieScraper := scraper.SetupMovieScraper(c, log)
 
-	// Scraper to fetch movie images on reviews pages.
-	// These pages are not updated after being
-	// published therefore we only visit them once.
-	movieScraper := (*scraper).Clone()
-	movieScraper.AllowURLRevisit = false
-
-	// Print error just in case
-	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
-	})
-
-	// Before making a request print "Visiting ..."
-	(*scraper).OnRequest(func(r *colly.Request) {
-		log.Debug.Println("visiting index page", log.White(r.URL.String()))
-	})
+	// Setup the common image response handler
+	scraper.SetupImageResponseHandler(movieScraper, options, stats, log)
 
 	// Find links to movies reviews and isolate the movie's title.
 	// Since BluBeaver is somewhat a custom website, some links
 	// might have different cases. We use the CSS4 "i" case-insensitive
 	// feature to make sure our filter doesn't miss anything.
-	(*scraper).OnHTML("li a[href*='film' i][href$='htm' i]", func(e *colly.HTMLElement) {
-
+	c.OnHTML("li a[href*='film' i][href$='htm' i]", func(e *colly.HTMLElement) {
 		// Sometimes, Blubeaver made mistakes and added links to reviews
 		// on Amazon icons. Since we use the link to isolate the movie's title,
 		// we ignore these links as they don't have the movie's name included.
 		if _, iconExistsInLink := e.DOM.Find("img").Attr("src"); iconExistsInLink {
-			log.Debug.Println("Link without text, just an icon, next")
+			log.Debug("Link without text, just an icon, next")
 			return
 		}
 
 		movieURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Debug.Println("Found movie page link", log.White(movieURL))
+		log.Debug("Found movie page link", pterm.White(movieURL))
 
 		// Remove weird accents and spaces from the movie's title
 		movieName, err := utils.Normalize(e.Text)
 		if err != nil {
-			log.Error.Println("Can't normalize Movie name for", log.White(e.Text), ":", log.Red(err))
+			log.Error("Can't normalize Movie name for", pterm.White(e.Text), ":", pterm.Red(err))
 			return
 		}
 
-		moviePath := filepath.Join(options.DataDir, options.Website, movieName)
-		log.Info.Println("Found movie page for:", log.White(movieName))
+		movie := scraper.NewMovie(movieName, "", movieURL, "blubeaver", options)
+		log.Info("Found movie page for:", pterm.White(movieName))
 
-		// Pass the movie's name and path to the next request context
-		// in order to save the images in correct folder.
-		ctx := colly.NewContext()
-		ctx.Put("movie_name", movieName)
-		ctx.Put("movie_path", moviePath)
-
-		// Try to visit movie page
-		if err = movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
+		if stats != nil {
+			stats.IncrMovies()
 		}
 
-	})
-
-	// Before making a request to URL
-	movieScraper.OnRequest(func(r *colly.Request) {
-		log.Debug.Println("visiting", log.White(r.URL.String()))
+		if err = movieScraper.Request("GET", movieURL, nil, movie.ToContext(), nil); err != nil {
+			log.Error("Can't get movie page", pterm.White(movieURL), ":", pterm.Red(err))
+		}
 	})
 
 	// It's rare but sometimes on BD reviews there are no large versions.
@@ -126,7 +101,7 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 
 			if movieImageHeight >= 265 && movieImageWidth >= 500 {
 				if err := e.Request.Visit(movieImageURL); err != nil {
-					log.Error.Println("Can't get inline image", log.White(movieImageURL), ":", log.Red(err))
+					log.Error("Can't get inline image", pterm.White(movieImageURL), ":", pterm.Red(err))
 				}
 			}
 		})
@@ -139,10 +114,10 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 	// most likely images with subtitles on top. We don't want that.
 	movieScraper.OnHTML("a[href*='large' i]:not([href*='subs' i])", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Debug.Println("Found large image", log.White(movieImageURL))
+		log.Debug("Found large image", pterm.White(movieImageURL))
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Error.Println("Can't get large image", log.White(movieImageURL), ":", log.Red(err))
+			log.Error("Can't get large image", pterm.White(movieImageURL), ":", pterm.Red(err))
 
 			// Sometimes, the high quality version of an image
 			// is not available anymore ("Not Found").
@@ -151,43 +126,17 @@ func BluBeaverScraper(scraper **colly.Collector, options *config.Options) {
 			// shown on the webpage that has a lower resolution.
 			lowImageURL, imgExists := e.DOM.Find("img").Attr("src")
 			if !imgExists {
-				log.Error.Println("Could not find an image inside link", log.White(movieImageURL))
+				log.Error("Could not find an image inside link", pterm.White(movieImageURL))
 				return
 			}
 
-			log.Info.Println("Trying to save low quality image instead", log.White(lowImageURL))
+			log.Info("Trying to save low quality image instead", pterm.White(lowImageURL))
 			if err := e.Request.Visit(e.Request.AbsoluteURL(lowImageURL)); err != nil {
-				log.Error.Println("Can't get low resolution image", log.White(lowImageURL), ":", log.Red(err))
+				log.Error("Can't get low resolution image", pterm.White(lowImageURL), ":", pterm.Red(err))
 			}
 		}
 	})
 
-	// Check if what we just visited is an image and
-	// save it to the movie folder we created earlier.
-	movieScraper.OnResponse(func(r *colly.Response) {
-
-		// Ignore anything that is not an image
-		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
-			return
-		}
-
-		// Try to save movie image
-		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
-			r.Ctx.Get("movie_name"),
-			r.FileName(),
-			r.Body,
-			options.Hash,
-		); err != nil {
-			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
-		}
-
-	})
-
-	if err := (*scraper).Visit(BluBeaverURL); err != nil {
-		log.Error.Println("Can't visit index page", log.White(BluBeaverURL), ":", log.Red(err))
-	}
-
-	// Ensure that all requests are completed before exiting
-	(*scraper).Wait()
-	movieScraper.Wait()
+	// Visit and wait for completion
+	scraper.VisitAndWait(c, movieScraper, BluBeaverURL, log)
 }

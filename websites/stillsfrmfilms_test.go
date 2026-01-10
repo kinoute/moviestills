@@ -1,7 +1,6 @@
 package websites
 
 import (
-	"log"
 	"moviestills/utils"
 	"testing"
 )
@@ -14,7 +13,7 @@ func TestStillsFrmIndexPage(t *testing.T) {
 	// Number of entries
 	numMovies := doc.Find("div.page-body div.wp-caption").Length()
 	if numMovies < 50 {
-		log.Fatalln("Number of movie reviews seem really low", numMovies)
+		t.Fatalf("Number of movie reviews seem really low: %d", numMovies)
 	}
 }
 
@@ -26,7 +25,6 @@ func TestStillsFrmNormalMoviePage(t *testing.T) {
 	// We should find many links to high-quality images
 	numLargeImages := doc.Find("div.photo-inner dl.gallery-item a[href*=stills] img[src*=uploads]").Length()
 	if numLargeImages != 55 {
-		log.Fatalln("Number of links to large images is different than 55:", numLargeImages)
+		t.Fatalf("Number of links to large images is different than 55: %d", numLargeImages)
 	}
-
 }

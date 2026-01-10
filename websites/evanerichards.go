@@ -2,13 +2,11 @@ package websites
 
 import (
 	"moviestills/config"
+	"moviestills/scraper"
 	"moviestills/utils"
-	"path/filepath"
-	"strings"
-
-	log "github.com/pterm/pterm"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/pterm/pterm"
 )
 
 // EvanERichardsURL is the webpage that stores a list of links to movie,
@@ -17,118 +15,72 @@ const EvanERichardsURL string = "https://www.evanerichards.com/index"
 
 // EvanERichardsScraper is the main function that handles all the scraping logic
 // for this website.
-func EvanERichardsScraper(scraper **colly.Collector, options *config.Options) {
+func EvanERichardsScraper(c *colly.Collector, options *config.Options, stats *scraper.Stats) {
+	log := scraper.NewLogger("evanerichards")
 
-	// Change allowed domain for the main scraper.
-	// Since everything is served on the same domain,
-	// only one domain is really necessary.
-	(*scraper).AllowedDomains = []string{
-		"www.evanerichards.com",
-		"evanerichards.com",
+	cfg := scraper.SiteConfig{
+		Name:     "evanerichards",
+		IndexURL: EvanERichardsURL,
+		AllowedDomains: []string{
+			"www.evanerichards.com",
+			"evanerichards.com",
+		},
 	}
 
-	// The index page might have been updated since last visit so
-	// we have to revisit it when restarting the scraper.
-	// It is a single page, it will not cost anything anyway.
-	(*scraper).AllowURLRevisit = true
+	// Setup the index scraper with common settings
+	scraper.SetupIndexScraper(c, cfg, log)
 
-	// Scraper to fetch movie images on movie pages.
-	// These pages are not updated after being
-	// published therefore we only visit them once.
-	movieScraper := (*scraper).Clone()
-	movieScraper.AllowURLRevisit = false
+	// Create and setup the movie scraper
+	movieScraper := scraper.SetupMovieScraper(c, log)
 
-	// Print error just in case
-	(*scraper).OnError(func(r *colly.Response, err error) {
-		log.Error.Println(r.Request.URL, "\t", log.White(r.StatusCode), "\nError:", log.Red(err))
-	})
-
-	// Before making a request print "Visiting ..."
-	(*scraper).OnRequest(func(r *colly.Request) {
-		log.Debug.Println("visiting index page", log.White(r.URL.String()))
-	})
+	// Setup the common image response handler
+	scraper.SetupImageResponseHandler(movieScraper, options, stats, log)
 
 	// Find links to movies pages and isolate the movie's title and year.
 	// We iterate through each table row to check if it's indeed a movie
 	// and not something else –– this website provides TV Series too.
-	(*scraper).OnHTML("tbody tr.pp-table-row", func(e *colly.HTMLElement) {
-
-		// Fetch various datas in columns for each table entry
+	c.OnHTML("tbody tr.pp-table-row", func(e *colly.HTMLElement) {
+		// Fetch various data in columns for each table entry
 		title, _ := utils.Normalize(e.DOM.Find("td.pp-table-cell-Title a").Text())
 		category, _ := utils.Normalize(e.DOM.Find("td.pp-table-cell-Category").Text())
 		year, _ := utils.Normalize(e.DOM.Find("td.pp-table-cell-Date").Text())
 
 		// Ignore entries that are not movies
 		if category != "Movie" && category != "Animation" {
-			log.Debug.Println(log.White(title), "is not a Movie, ignoring...")
+			log.Debug(pterm.White(title), "is not a Movie, ignoring...")
 			return
 		}
 
 		movieURL, urlExists := e.DOM.Find("td.pp-table-cell-Title a").Attr("href")
 		if !urlExists {
-			log.Debug.Println("could not find movie URL, next")
+			log.Debug("could not find movie URL, next")
 			return
 		}
 
-		log.Debug.Println("Found movie page link", log.White(movieURL))
+		log.Debug("Found movie page link", pterm.White(movieURL))
 
-		moviePath := filepath.Join(options.DataDir, options.Website, title)
+		movie := scraper.NewMovie(title, year, movieURL, "evanerichards", options)
+		log.Info("Found movie page for:", pterm.White(title))
 
-		log.Info.Println("Found movie page for:", log.White(title))
-
-		// Pass the movie's name, year and path to the next request context
-		// in order to save the images in correct folder.
-		ctx := colly.NewContext()
-		ctx.Put("movie_name", title)
-		ctx.Put("movie_year", year)
-		ctx.Put("movie_path", moviePath)
-
-		if err := movieScraper.Request("GET", movieURL, nil, ctx, nil); err != nil {
-			log.Error.Println("Can't get movie page", log.White(movieURL), ":", log.Red(err))
+		if stats != nil {
+			stats.IncrMovies()
 		}
 
+		if err := movieScraper.Request("GET", movieURL, nil, movie.ToContext(), nil); err != nil {
+			log.Error("Can't get movie page", pterm.White(movieURL), ":", pterm.Red(err))
+		}
 	})
 
 	// Look for links on thumbnails that redirect to a "largest" version
 	movieScraper.OnHTML("div.elementor-widget-container div.ngg-gallery-thumbnail a[class*=shutter]", func(e *colly.HTMLElement) {
 		movieImageURL := e.Request.AbsoluteURL(e.Attr("href"))
-		log.Debug.Println("Found linked image", log.White(movieImageURL))
+		log.Debug("Found linked image", pterm.White(movieImageURL))
 
 		if err := e.Request.Visit(movieImageURL); err != nil {
-			log.Error.Println("Can't get large image", log.White(movieImageURL), ":", log.Red(err))
+			log.Error("Can't get large image", pterm.White(movieImageURL), ":", pterm.Red(err))
 		}
 	})
 
-	// Before making a request to URL
-	movieScraper.OnRequest(func(r *colly.Request) {
-		log.Debug.Println("visiting", log.White(r.URL.String()))
-	})
-
-	// Check if what we just visited is an image and
-	// save it to the movie folder we created earlier.
-	movieScraper.OnResponse(func(r *colly.Response) {
-
-		// Ignore anything that is not an image
-		if !strings.Contains(r.Headers.Get("Content-Type"), "image") {
-			return
-		}
-
-		// Try to save movie image
-		if err := utils.SaveImage(r.Ctx.Get("movie_path"),
-			r.Ctx.Get("movie_name"),
-			r.FileName(),
-			r.Body,
-			options.Hash,
-		); err != nil {
-			log.Error.Println("Can't save image", log.White(r.FileName()), log.Red(err))
-		}
-	})
-
-	if err := (*scraper).Visit(EvanERichardsURL); err != nil {
-		log.Error.Println("Can't visit index page", log.White(BluBeaverURL), ":", log.Red(err))
-	}
-
-	// Ensure that all requests are completed before exiting
-	(*scraper).Wait()
-	movieScraper.Wait()
+	// Visit and wait for completion
+	scraper.VisitAndWait(c, movieScraper, EvanERichardsURL, log)
 }
