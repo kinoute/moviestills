@@ -1,15 +1,13 @@
 module moviestills
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/alexflint/go-arg v1.6.1
 	github.com/gocolly/colly/v2 v2.3.0
 	github.com/pterm/pterm v0.12.83
-	golang.org/x/text v0.34.0
+	golang.org/x/text v0.35.0
 )
 
 require (
